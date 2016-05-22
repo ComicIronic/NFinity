@@ -7,7 +7,7 @@ import nfinity.nfinity.ntype.NType;
  * Created by Comic on 21/05/2016.
  */
 public class Atom extends NType {
-    public Atom() {
+    {
         ParentType = NAssembly.Datum;
     }
 }

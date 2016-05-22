@@ -8,7 +8,7 @@ import nfinity.nfinity.ntype.NType;
  * Created by Comic on 21/05/2016.
  */
 public class Datum extends NType {
-    public Datum() {
+     {
         ParentType = NAssembly.Null;
     }
 }

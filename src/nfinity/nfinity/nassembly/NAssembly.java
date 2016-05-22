@@ -4,8 +4,8 @@ import nfinity.nfinity.ncontext.NContext;
 import nfinity.nfinity.ncontext.contexts.WorldContext;
 import nfinity.nfinity.ntype.NType;
 import nfinity.nfinity.ntype.core.*;
+import nfinity.nfinity.ntype.generic.list.NList;
 import nfinity.nfinity.ntype.primitive.*;
-import nfinity.nfinity.ntype.generic.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,7 +43,7 @@ public class NAssembly {
 
     public static List<NType> Types = new ArrayList<NType>();
 
-    public static WorldContext WorldContext = new WorldContext();
+    public static NContext WorldContext = new WorldContext();
 
     static {
         Types.addAll(Arrays.asList(Datum, Num, String, Bool, NList, Atom, Movable, Area, Turf, Obj, Mob));
