@@ -3,7 +3,6 @@ package nfinity.nfinity.ntype.generic;
 import nfinity.nfinity.nassembly.NAssembly;
 import nfinity.nfinity.nmember.NField;
 import nfinity.nfinity.nmember.NMethod;
-import nfinity.nfinity.nsignature.NSignature;
 import nfinity.nfinity.ntype.NType;
 
 /**
@@ -12,7 +11,7 @@ import nfinity.nfinity.ntype.NType;
 public class GenericBase extends NType {
     public GenericType GenericType = new GenericType();
 
-    public GenericBase() {
+    {
         ParentType = NAssembly.Datum;
     }
 
@@ -20,15 +19,23 @@ public class GenericBase extends NType {
         return GenericType.acceptsCast(specificType);
     }
 
+    /**
+     * Creates a type to be filled with the degenerized members
+     * @return
+     */
+    public NType genericInstance(NType specificType) {
+        return new GenericInstance(ParentType, specificType);
+    }
+
     public NType createInstance(NType specificType) {
-        NType instance = new NType(ParentType);
+        NType instance = genericInstance(specificType);
 
         for(NMethod method : Methods) {
-            instance.Methods.add(new NMethod(method.Signature.degenerize(GenericType, specificType)));
+            instance.Methods.add(new NMethod(instance, method.Signature.degenerize(GenericType, specificType)));
         }
 
         for(NField field : Fields) {
-            instance.Fields.add(new NField(field.Signature.degenerize(GenericType, specificType)));
+            instance.Fields.add(new NField(instance, field.Signature.degenerize(GenericType, specificType)));
         }
 
         return instance;
