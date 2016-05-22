@@ -1,0 +1,16 @@
+package nfinity.nfinity.ncontext;
+
+import nfinity.nfinity.nmember.*;
+
+import java.util.List;
+
+/**
+ * Created by Comic on 21/05/2016.
+ */
+public abstract class NContext {
+    public static NContext World;
+
+    public abstract List<NField> Fields();
+
+    public abstract List<NMethod> Methods();
+}
