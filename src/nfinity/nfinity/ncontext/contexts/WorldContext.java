@@ -18,4 +18,8 @@ public class WorldContext extends NContext {
     public List<NField> Fields() {
         return NAssembly.World.getFields();
     }
+
+    public boolean canAccess(NMember member) {
+        return Methods().contains(member) || Fields().contains(member);
+    }
 }

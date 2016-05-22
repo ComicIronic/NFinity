@@ -1,6 +1,8 @@
 package nfinity.nfinity.ntype;
 
 import nfinity.nfinity.nassembly.NAssembly;
+import nfinity.nfinity.ncontext.NContext;
+import nfinity.nfinity.ncontext.contexts.TypeContext;
 import nfinity.nfinity.nmember.NField;
 import nfinity.nfinity.nmember.NMethod;
 
@@ -12,6 +14,8 @@ import java.util.List;
  */
 public class NType {
     public NType ParentType;
+
+    public NContext TypeContext = new TypeContext(this);
 
     public List<NMethod> Methods = new ArrayList<NMethod>();
     public List<NField> Fields = new ArrayList<NField>();
@@ -45,10 +49,14 @@ public class NType {
     }
 
     public boolean acceptsCast(NType other) {
-        NType castType = other;
+        return other.isChildOf(this);
+    }
+
+    public boolean isChildOf(NType possibleParent) {
+        NType castType = this;
 
         while(castType != NAssembly.Null) {
-            if(castType == this) {
+            if(castType == possibleParent) {
                 return true;
             }
 

@@ -13,4 +13,6 @@ public abstract class NContext {
     public abstract List<NField> Fields();
 
     public abstract List<NMethod> Methods();
+
+    public abstract boolean canAccess(NMember member);
 }

@@ -24,6 +24,6 @@ public class NArg {
     }
 
     public boolean accepts(NType othertype) {
-        return othertype.canCastTo(Type) || (Optional && othertype == Null);
+        return Type.acceptsCast(othertype) || (Optional && othertype == Null);
     }
 }
