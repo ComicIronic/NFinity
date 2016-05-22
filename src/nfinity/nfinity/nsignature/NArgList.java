@@ -12,6 +12,6 @@ public class NArgList extends NArg {
     }
 
     public boolean accepts(NType othertype) {
-         return othertype.canCastTo(Type);
+         return Type.acceptsCast(othertype);
     }
 }
