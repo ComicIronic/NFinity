@@ -15,16 +15,17 @@ import java.util.List;
 public class TypeContext extends NContext {
     public NType Type;
 
-    public TypeContext(NType type) {
+    public TypeContext(NAssembly assembly, NType type) {
+    	Assembly = assembly;
         Type = type;
     }
 
     public List<NMethod> Methods() {
-        return ListUtils.union(NAssembly.WorldContext.Methods(), Type.getMethods());
+        return ListUtils.union(Assembly.WorldContext.Methods(), Type.getMethods());
     }
 
     public List<NField> Fields() {
-        return ListUtils.union(NAssembly.WorldContext.Fields(), Type.getFields());
+        return ListUtils.union(Assembly.WorldContext.Fields(), Type.getFields());
     }
 
     public boolean canAccess(NMember member) {

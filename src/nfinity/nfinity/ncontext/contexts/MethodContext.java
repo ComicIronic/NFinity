@@ -20,6 +20,16 @@ public class MethodContext extends NContext {
 
     public List<NField> Fields = new ArrayList<NField>();
 
+    public MethodContext() {
+        Assembly = null;
+        MethodOwner = null;
+    }
+
+    public MethodContext(NMethod method) {
+    	Assembly = method.TypeOwner.Assembly;
+    	MethodOwner = method;
+    }
+
     public boolean canAccess(NMember member) {
         switch(member.Signature.Access) {
             case Member: {
@@ -53,8 +63,6 @@ public class MethodContext extends NContext {
     }
 
     public MethodContext dive() {
-        SubContext context = new SubContext();
-        context.ParentContext = this;
-        return context;
+        return new SubContext(this);
     }
 }

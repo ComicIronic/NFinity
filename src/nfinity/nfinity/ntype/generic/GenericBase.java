@@ -11,8 +11,14 @@ import nfinity.nfinity.ntype.NType;
 public class GenericBase extends NType {
     public GenericType GenericType = new GenericType();
 
+    public GenericBase(NType parentType, NAssembly assembly) {
+        super(parentType, assembly);
+    }
+
+    public GenericBase() {
+    }
+
     {
-        ParentType = NAssembly.Datum;
     }
 
     public boolean canCreateInstance(NType specificType) {
@@ -24,7 +30,7 @@ public class GenericBase extends NType {
      * @return
      */
     public NType genericInstance(NType specificType) {
-        return new GenericInstance(ParentType, specificType);
+        return new GenericInstance(ParentType, specificType, Assembly);
     }
 
     public NType createInstance(NType specificType) {

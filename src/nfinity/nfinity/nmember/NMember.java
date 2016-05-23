@@ -15,7 +15,8 @@ public abstract class NMember {
     public NSignature Signature;
 
     public NMember() {
-        Signature = new NSignature("", NAssembly.Null, NAccess.Private);
+    	TypeOwner = NType.Null;
+        Signature = new NSignature("", NType.Null, NAccess.Private);
     }
 
     public NMember(NType owner, NSignature signature) {

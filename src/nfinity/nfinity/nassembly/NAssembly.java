@@ -15,37 +15,75 @@ import java.util.List;
  * Created by Comic on 21/05/2016.
  */
 public class NAssembly {
-    public static NType Null = new Null();
+    public NType Null;
 
-    public static NType World = new World();
+    public NType World;
 
-    public static NType Datum = new Datum();
+    public NType Datum;
 
-    public static NType Num = new Num();
+    public NType Num;
 
-    public static NType String = new NString();
+    public NType String;
 
-    public static NType Bool = new NBool();
+    public NType Bool;
+    
+    public NType Any;
 
-    public static NType NList = new NList();
+    public NType NList;
 
-    public static NType Atom = new Atom();
+    public NType Atom;
 
-    public static NType Movable = new Movable();
+    public NType Movable;
 
-    public static NType Area = new Area();
+    public NType Area;
 
-    public static NType Turf = new Turf();
+    public NType Turf;
 
-    public static NType Obj = new Obj();
+    public NType Obj;
 
-    public static NType Mob = new Mob();
+    public NType Mob;
 
-    public static List<NType> Types = new ArrayList<NType>();
+    public List<NType> Types = new ArrayList<NType>();
 
-    public static NContext WorldContext = new WorldContext();
+    public NContext WorldContext;
+    
+    {
+    	reset();
+    }
 
-    static {
+    public void reset() {
+    	Types.clear();
+    	
+    	WorldContext = new WorldContext(this);
+    	
+    	Null = NType.Null;
+    	
+    	World = new World(Null, this);
+    	
+        Datum = new Datum(Null, this);
+
+        Num = new NNum(Null, this);
+
+        String = new NString(Null, this);
+
+        Bool = new NBool(Null, this);
+        
+        Any = new Any(Null, this);
+
+        NList = new NList(Null, this);
+
+        Atom = new Atom(Datum, this);
+
+        Movable = new Movable(Atom, this);
+
+        Area = new Area(Atom, this);
+
+        Turf = new Turf(Atom, this);
+
+        Obj = new Obj(Movable, this);
+
+        Mob = new Mob(Movable, this);
+    	
         Types.addAll(Arrays.asList(Datum, Num, String, Bool, NList, Atom, Movable, Area, Turf, Obj, Mob));
     }
 }

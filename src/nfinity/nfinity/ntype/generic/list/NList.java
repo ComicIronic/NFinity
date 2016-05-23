@@ -9,6 +9,10 @@ import nfinity.nfinity.ntype.generic.GenericBase;
  */
 public class NList extends GenericBase {
     {
-        ParentType = NAssembly.Null;
+        ParentType = NType.Null;
+    }
+
+    public NList(NType parentType, NAssembly assembly) {
+        super(parentType, assembly);
     }
 }

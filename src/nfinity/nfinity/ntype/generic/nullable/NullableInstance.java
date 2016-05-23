@@ -12,11 +12,10 @@ import nfinity.nfinity.ntype.generic.GenericInstance;
  */
 public class NullableInstance extends GenericInstance {
     public boolean acceptsCast(NType other) {
-        return other == NAssembly.Null || super.acceptsCast(other);
+        return other == NType.Null || super.acceptsCast(other);
     }
 
-    public NullableInstance(NType parent, NType implemented) {
-        ParentType = parent;
-        ImplementedType = implemented;
+    public NullableInstance(NType parent, NType implemented, NAssembly assembly) {
+        super(parent, implemented, assembly);
     }
 }
