@@ -1,10 +1,10 @@
 package nfinity.nfinity;
 
 import nfinity.nfinity.nproject.NProject;
+import nfinity.nfinity.ncontext.NContext;
+import nfinity.nfinity.util.ListUtils;
 
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -63,6 +63,14 @@ public class Nterpreter {
         catch (IOException e) {
 
         }
+        
+        for(String error : getErrors()) {
+        	System.out.println(error);
+        }
+        
+        for(String warning : getWarnings()) {
+        	System.out.println(warning);
+        }
 
         return project;
     }
@@ -85,6 +93,25 @@ public class Nterpreter {
         }
 
         return convertedPath;
+    }
+    
+    public static void assemble(NProject project) {
+    	project.Assembly.reset();
+    	
+    	NContext context = project.Assembly.WorldContext;
+    	
+    	for(Path filePath : project.Files) {
+    		try {
+    			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath.toString())));
+    			
+    			do {
+    				
+    			} while(reader.ready());
+    			
+    		} catch (IOException e) {
+    			warn(filePath, 0, "Could not read file.");
+    		}
+    	}
     }
 
     public static boolean addDefine(NProject project, String line) {
@@ -145,5 +172,18 @@ public class Nterpreter {
      */
     public static void error(Path filepath, int linecount, String message) {
         Warnings.add(String.format("ERROR: File {0}: Line {1}, {2}", filepath.toString(), linecount, message));
+    }
+    
+    
+    public static List<String> getWarnings() {
+    	List<String> warningCopy = ListUtils.copy(Warnings);
+    	Warnings.clear();
+    	return warningCopy;
+    }
+    
+    public static List<String> getErrors() {
+    	List<String> errorCopy = ListUtils.copy(Errors);
+    	Errors.clear();
+    	return errorCopy;
     }
 }

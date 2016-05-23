@@ -1,5 +1,6 @@
 package nfinity.nfinity.ntype;
 
+import nfinity.nfinity.ntype.core.Null;
 import nfinity.nfinity.nassembly.NAssembly;
 import nfinity.nfinity.ncontext.NContext;
 import nfinity.nfinity.ncontext.contexts.TypeContext;
@@ -13,19 +14,26 @@ import java.util.List;
  * Created by Comic on 21/05/2016.
  */
 public class NType {
+	public static NType Null = new Null(null, null);
+	
     public NType ParentType;
 
-    public NContext TypeContext = new TypeContext(this);
+    public NContext TypeContext;
 
     public List<NMethod> Methods = new ArrayList<NMethod>();
     public List<NField> Fields = new ArrayList<NField>();
+    
+    public NAssembly Assembly;
 
     public NType() {
         ParentType = null;
     }
 
-    public NType(NType parentType) {
+    public NType(NType parentType, NAssembly assembly) {
         ParentType = parentType;
+        Assembly = assembly;
+        
+        TypeContext = new TypeContext(Assembly, this);
     }
 
     public List<NMethod> getMethods() {
@@ -55,7 +63,7 @@ public class NType {
     public boolean isChildOf(NType possibleParent) {
         NType castType = this;
 
-        while(castType != NAssembly.Null) {
+        while(castType != NType.Null) {
             if(castType == possibleParent) {
                 return true;
             }

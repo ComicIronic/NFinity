@@ -1,6 +1,5 @@
 package nfinity.nfinity.ntype.generic;
 
-import com.sun.istack.internal.Pool;
 import nfinity.nfinity.nassembly.NAssembly;
 import nfinity.nfinity.ntype.NType;
 
@@ -14,12 +13,12 @@ public class GenericInstance extends NType {
     public NType ImplementedType;
 
     public GenericInstance() {
-        ParentType = NAssembly.Null;
-        ImplementedType = NAssembly.Null;
+        ParentType = NType.Null;
+        ImplementedType = NType.Null;
     }
 
-    public GenericInstance(NType parent, NType implemented) {
-        ParentType = parent;
+    public GenericInstance(NType parent, NType implemented, NAssembly assembly) {
+        super(parent, assembly);
         ImplementedType = implemented;
     }
 

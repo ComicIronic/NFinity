@@ -7,7 +7,10 @@ import nfinity.nfinity.ntype.NType;
  * Created by Comic on 21/05/2016.
  */
 public class Turf extends NType {
+    public Turf(NType parentType, NAssembly assembly) {
+    	super(parentType, assembly);
+    }
+	
     {
-        ParentType = NAssembly.Atom;
     }
 }

@@ -12,14 +12,18 @@ import java.util.List;
  */
 public class WorldContext extends NContext {
     public List<NMethod> Methods() {
-        return NAssembly.World.getMethods();
+        return Assembly.World.getMethods();
     }
 
     public List<NField> Fields() {
-        return NAssembly.World.getFields();
+        return Assembly.World.getFields();
     }
 
     public boolean canAccess(NMember member) {
         return Methods().contains(member) || Fields().contains(member);
+    }
+    
+    public WorldContext(NAssembly assembly) {
+    	Assembly = assembly;
     }
 }

@@ -18,6 +18,11 @@ import java.util.List;
 public class SubContext extends MethodContext {
     public MethodContext ParentContext;
 
+    public SubContext(MethodContext parent) {
+    	Assembly = parent.Assembly;
+    	ParentContext = parent;
+    }
+    
     public List<NField> MemberFields() {
         return ListUtils.union(Fields, ParentContext.MemberFields());
     }

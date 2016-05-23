@@ -3,8 +3,6 @@ package nfinity.nfinity.nsignature;
 import nfinity.nfinity.nassembly.NAssembly;
 import nfinity.nfinity.ntype.NType;
 
-import static nfinity.nfinity.nassembly.NAssembly.Null;
-
 /**
  * Created by Comic on 21/05/2016.
  */
@@ -14,7 +12,7 @@ public class NArg {
     public boolean Optional;
 
     public NArg() {
-        Type = Null;
+        Type = NType.Null;
         Optional = true;
     }
 
@@ -24,6 +22,6 @@ public class NArg {
     }
 
     public boolean accepts(NType othertype) {
-        return Type.acceptsCast(othertype) || (Optional && othertype == Null);
+        return Type.acceptsCast(othertype) || (Optional && othertype == NType.Null);
     }
 }

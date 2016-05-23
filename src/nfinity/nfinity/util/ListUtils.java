@@ -20,4 +20,10 @@ public class ListUtils {
 
         return new ArrayList<T>(set);
     }
+
+    public static <T> List<T> copy(List<T> list) {
+        List<T> duplicate = new ArrayList<T>();
+        duplicate.addAll(list);
+        return duplicate;
+    }
 }
