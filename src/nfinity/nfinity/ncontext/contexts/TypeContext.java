@@ -44,4 +44,16 @@ public class TypeContext extends NContext {
             }
         }
     }
+
+    public NType getType() {
+        return Type;
+    }
+
+    public void addField(NField field) {
+        getType().addField(field);
+    }
+
+    public void addMethod(NMethod method) {
+        getType().addMethod(method);
+    }
 }

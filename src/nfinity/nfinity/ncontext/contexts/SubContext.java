@@ -4,6 +4,7 @@ import nfinity.nfinity.ncontext.NContext;
 import nfinity.nfinity.nmember.NField;
 import nfinity.nfinity.nmember.NMember;
 import nfinity.nfinity.nmember.NMethod;
+import nfinity.nfinity.ntype.NType;
 import nfinity.nfinity.util.ListUtils;
 
 import java.lang.reflect.Method;
@@ -21,6 +22,10 @@ public class SubContext extends MethodContext {
     public SubContext(MethodContext parent) {
     	Assembly = parent.Assembly;
     	ParentContext = parent;
+    }
+
+    public NType getType() {
+        return ParentContext.getType();
     }
     
     public List<NField> MemberFields() {

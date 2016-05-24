@@ -26,4 +26,16 @@ public class WorldContext extends NContext {
     public WorldContext(NAssembly assembly) {
     	Assembly = assembly;
     }
+
+    public NType getType() {
+        return Assembly.World;
+    }
+
+    public void addField(NField field) {
+        getType().addField(field);
+    }
+
+    public void addMethod(NMethod method) {
+        getType().addMethod(method);
+    }
 }

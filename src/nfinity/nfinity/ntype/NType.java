@@ -56,6 +56,14 @@ public class NType {
         return allFields;
     }
 
+    public void addField(NField field) {
+        Fields.add(field);
+    }
+
+    public void addMethod(NMethod method) {
+        Methods.add(method);
+    }
+
     public boolean acceptsCast(NType other) {
         return other.isChildOf(this);
     }

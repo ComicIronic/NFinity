@@ -1,9 +1,11 @@
 package nfinity.nfinity.ncontext.contexts;
 
+import nfinity.nfinity.Nterpreter;
 import nfinity.nfinity.ncontext.NContext;
 import nfinity.nfinity.nmember.NField;
 import nfinity.nfinity.nmember.NMember;
 import nfinity.nfinity.nmember.NMethod;
+import nfinity.nfinity.ntype.NType;
 import nfinity.nfinity.util.ListUtils;
 
 import java.util.ArrayList;
@@ -28,6 +30,18 @@ public class MethodContext extends NContext {
     public MethodContext(NMethod method) {
     	Assembly = method.TypeOwner.Assembly;
     	MethodOwner = method;
+    }
+
+    public NType getType() {
+        return MethodOwner.TypeOwner;
+    }
+
+    public void addField(NField field) {
+        Fields.add(field);
+    }
+
+    public void addMethod(NMethod method) {
+        Nterpreter.error(filePath, lineNumber, "Methods cannot be declared inside other code!");
     }
 
     public boolean canAccess(NMember member) {
