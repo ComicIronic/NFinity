@@ -2,9 +2,42 @@ parser grammar NFinityParse;
 
 options { tokenVocab= NFinityLexer; }
 
+line
+    : type_declare type_body
+    | (type_declare SEPARATOR)? method_declare expression_body
+    | (type_declare SEPARATOR)? verb_declare verb_body
+    | (type_declare SEPARATOR)? var_with_value_declare
+    | (type_declare SEPARATOR)? field_pure
+    | preprocess
+    ;
+
+preprocess
+    : HASH (DEFINE | UNDEF | INCLUDE) statement?
+    ;
+
+expression
+    : statement
+    | IF '(' statement ')' expression_body (ELSE expression_body)?
+    | FOR '(' assignment ';' statement ';' statement ')' expression_body
+    | FOR '(' var_declare IN statement ')'
+    | WHILE '(' statement ')'
+    | SWITCH '(' statement ')' (IF '(' statement ')' expression_body)* (ELSE expression_body)?
+    | preprocess
+    ;
+
+expression_body
+    : expression*
+    ;
+
+type_body
+    : pure_assignment*
+    ;
+
 statement
     : single_statement
-    | or_statement
+    | trinary_statement
+    | assignment
+    | RETURN statement?
     ;
 
 single_statement
@@ -16,29 +49,43 @@ single_statement
     | single_statement UNARY_POST
     ;
 
+trinary_statement
+    : or_statement '?' statement ':' statement
+    ;
+
 or_statement
-    : and_statement BINARY_OR and_statement
+    : and_statement (BINARY_OR and_statement)*
     ;
 
 and_statement
-	: compare_statement BINARY_AND compare_statement
+	: compare_statement (BINARY_AND compare_statement)*
 	;
 
 compare_statement
-	: low_statement BINARY_COMPARE low_statement
+	: low_statement (BINARY_COMPARE low_statement)*
 	;
 
 low_statement
-	: mid_statement BINARY_LOW mid_statement
+	: med_statement (BINARY_LOW med_statement)*
 	;
 
-mid_statement
-	: high_statement BINARY_MID high_statement
+med_statement
+	: high_statement (BINARY_MED high_statement)*
 	;
 
 high_statement
-	: single_statement BINARY_HIGH single_statement
+	: single_statement (BINARY_HIGH single_statement)*
 	;
+
+type_declare
+    : SEPARATOR? TYPEPATH SEPARATOR member_name
+    | SEPARATOR? TYPEPATH SEPARATOR member_name SEPARATOR GENERIC SEPARATOR member_name
+    ;
+
+var_with_value_declare
+    : var_declare
+    | var_declare_assignment
+    ;
 
 var_declare
     : VAR SEPARATOR TYPEPATH SEPARATOR member_name
@@ -53,6 +100,14 @@ method_declare
 verb_declare
 	: VERB SEPARATOR member_name '(' argument_declares? ')'
 	;
+
+verb_body
+    : set_statement* expression_body
+    ;
+
+set_statement
+    : SET VERB_SET (AS | ASSIGNMENT) statement
+    ;
 
 argument_declares
     : (argument_declare ',')* argument_declare (',' ELLIPSIS)?
@@ -75,8 +130,39 @@ optional_var_declare
     ;
 
 assignment
-    : var_declare ASSIGNER statement
-    | field_access ASSIGNER statement
+    : var_declare_assignment
+    | field_assignment
+    ;
+
+pure_assignment
+    : var_declare_pure
+    | field_pure
+    ;
+
+var_declare_assignment
+    : var_declare_pure
+    | var_declare_op
+    ;
+
+var_declare_op
+    : var_declare ASSIGNER_OP statement
+    ;
+
+var_declare_pure
+    : var_declare ASSIGNMENT statement
+    ;
+
+field_assignment
+    : field_op
+    | field_pure
+    ;
+
+field_op
+    : field_access ASSIGNER_OP statement
+    ;
+
+field_pure
+    : field_access ASSIGNMENT statement
     ;
 
 method_access
@@ -101,7 +187,7 @@ field_access
     ;
 
 access_path
-    : access_start '.' (access_part '.')*
+    : access_start ACCESS (access_part ACCESS)*
     ;
 
 member_name
@@ -110,7 +196,7 @@ member_name
 
 access_start
     : access_part
-    | single_statement
+    | '(' statement ')'
     | BARE_VALUE
     | SRC
     ;

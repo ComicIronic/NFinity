@@ -28,12 +28,25 @@ TO:        'to';
 AS:        'as';
 SET:       'set';
 SRC:       'src';
+GENERIC:   'generic';
+HIDDEN:    'hidden';
+NAME:      'name';
+DESC:      'desc';
+CATEGORY:  'category';
+POPUP:     'popup_menu';
+INSTANT:   'instant';
+INVIS:     'invisbility';
+BACKG:     'background';
 
 DEFINE:    'define' ;
 UNDEF:     'undef'  ;
 INCLUDE:   'include';
 
-SINGLESTRING: '"' (~["\\]|INPUTCHAR)* '"';
+SINGLESTRING
+    : '"' (~["\\]|INPUTCHAR)* '"'
+    | '\'' (~[\'\\]|INPUTCHAR)* '\''
+    ;
+
 MULTISTRING: '{"' (~[\\])* '"}' ;
 
 STRING
@@ -102,6 +115,7 @@ OP_XOR_ASSIGNMENT:        '^=';
 OP_LEFT_SHIFT:            '<<';
 OP_LEFT_SHIFT_ASSIGNMENT: '<<=';
 ELLIPSIS:                 '...';
+HASH:                     '#';
 
 IDENTSTART : [a-z] | [A-Z] | '_' ;
 IDENTPART : IDENTSTART | [0-9] ;
@@ -123,7 +137,7 @@ BARE_VALUE
     | BINARY
     ;
 
-ASSIGNER
+ASSIGNER_OP
     : OP_ADD_ASSIGNMENT
     | OP_SUB_ASSIGNMENT
     | OP_MULT_ASSIGNMENT
@@ -132,7 +146,6 @@ ASSIGNER
     | OP_AND_ASSIGNMENT
     | OP_OR_ASSIGNMENT
     | OP_XOR_ASSIGNMENT
-    | ASSIGNMENT
     ;
 
 BINARY_OP
@@ -192,4 +205,16 @@ UNARY_PRE
     : BANG
     | TILDE
     | UNARY_BOTH
+    ;
+
+VERB_SET
+    : NAME
+    | DESC
+    | CATEGORY
+    | HIDDEN
+    | POPUP
+    | INSTANT
+    | INVIS
+    | SRC
+    | BACKG
     ;
