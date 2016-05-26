@@ -37,6 +37,11 @@ POPUP:     'popup_menu';
 INSTANT:   'instant';
 INVIS:     'invisbility';
 BACKG:     'background';
+SPAWN:     'spawn';
+
+SECS:      'SECONDS';
+MINS:      'MINUTES';
+HOURS:     'HOURS';
 
 DEFINE:    'define' ;
 UNDEF:     'undef'  ;
@@ -61,14 +66,21 @@ BINARY : BINARYDIGIT+ ;
 DECIMAL: [0-9]* '.' [0-9]+ ;
 INTEGER: [0-9]+ ;
 
-ACCESS
-    : DOT
-    | COLON
-    ;
-
 NUM
     : DECIMAL
     | INTEGER
+    ;
+
+TIME_MOD
+    : SECS
+    | MINS
+    | HOURS
+    ;
+
+BARE_VALUE
+    : NUM TIME_MOD?
+    | STRING
+    | BINARY
     ;
 
 OPEN_BRACKET:             '[';
@@ -123,6 +135,11 @@ IDENTPART : IDENTSTART | [0-9] ;
 //Any valid type, var, or method name follows the ident pattern
 IDENT : IDENTSTART IDENTPART*;
 
+ACCESS
+    : DOT
+    | COLON
+    ;
+
 TYPEPATH : DEEPPATH | IDENT ;
 
 //The generic demands at least two depth i.e. path/to
@@ -130,12 +147,6 @@ fragment DEEPPATH : (IDENT SEPARATOR)+ IDENT;
 
 //This is the groupings of mob|obj|turf etc.
 TYPE_GROUP: (IDENT BITWISE_OR)* IDENT;
-
-BARE_VALUE
-    : NUM
-    | STRING
-    | BINARY
-    ;
 
 ASSIGNER_OP
     : OP_ADD_ASSIGNMENT
