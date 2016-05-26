@@ -1,5 +1,90 @@
 lexer grammar NFinityLexer;
 
+tokens { INDENT, DEDENT }
+
+@lexer::members {
+  // A queue where extra tokens are pushed on (see the NEWLINE lexer rule).
+  private java.util.LinkedList<Token> tokens = new java.util.LinkedList<>();
+  // The stack that keeps track of the indentation level.
+  private java.util.Stack<Integer> indents = new java.util.Stack<>();
+  // The amount of opened braces, brackets and parenthesis.
+  private int opened = 0;
+  // The most recently produced token.
+  private Token lastToken = null;
+  @Override
+  public void emit(Token t) {
+    super.setToken(t);
+    tokens.offer(t);
+  }
+
+  @Override
+  public Token nextToken() {
+    // Check if the end-of-file is ahead and there are still some DEDENTS expected.
+    if (_input.LA(1) == EOF && !this.indents.isEmpty()) {
+      // Remove any trailing EOF tokens from our buffer.
+      for (int i = tokens.size() - 1; i >= 0; i--) {
+        if (tokens.get(i).getType() == EOF) {
+          tokens.remove(i);
+        }
+      }
+
+      // First emit an extra line break that serves as the end of the statement.
+      this.emit(commonToken(Python3Parser.NEWLINE, "\n"));
+
+      // Now emit as much DEDENT tokens as needed.
+      while (!indents.isEmpty()) {
+        this.emit(createDedent());
+        indents.pop();
+      }
+
+      // Put the EOF back on the token stream.
+      this.emit(commonToken(Python3Parser.EOF, "<EOF>"));
+    }
+
+    Token next = super.nextToken();
+
+    if (next.getChannel() == Token.DEFAULT_CHANNEL) {
+      // Keep track of the last token on the default channel.
+      this.lastToken = next;
+    }
+
+    return tokens.isEmpty() ? next : tokens.poll();
+  }
+
+  private Token createDedent() {
+    CommonToken dedent = commonToken(Python3Parser.DEDENT, "");
+    dedent.setLine(this.lastToken.getLine());
+    return dedent;
+  }
+
+  private CommonToken commonToken(int type, String text) {
+    int stop = this.getCharIndex() - 1;
+    int start = text.isEmpty() ? stop : stop - text.length() + 1;
+    return new CommonToken(this._tokenFactorySourcePair, type, DEFAULT_TOKEN_CHANNEL, start, stop);
+  }
+
+  // Calculates the indentation of the provided spaces
+  static int getIndentationCount(String spaces) {
+    int count = 0;
+    for (char ch : spaces.toCharArray()) {
+      switch (ch) {
+        case '\t':
+          count += 4 - (count % 4);
+          break;
+        default:
+          // A normal space char.
+          count++;
+      }
+    }
+
+    return count;
+  }
+
+  boolean atStartOfInput() {
+    return super.getCharPositionInLine() == 0 && super.getLine() == 1;
+  }
+}
+
 SINGLE_LINE_COMMENT:     '//'  INPUTCHAR*         -> skip;
 DELIMITED_COMMENT:       '/*'  .*? '*/'           -> skip;
 LINEJOINS:               LINE_JOIN                -> skip;
@@ -29,6 +114,7 @@ AS:        'as';
 SET:       'set';
 SRC:       'src';
 GENERIC:   'generic';
+WHERE:     'where';
 HIDDEN:    'hidden';
 NAME:      'name';
 DESC:      'desc';
@@ -95,7 +181,6 @@ PLUS:                     '+';
 MINUS:                    '-';
 STAR:                     '*';
 DIV:                      '/';
-SEPARATOR:                '/';
 PERCENT:                  '%';
 AMP:                      '&';
 BITWISE_OR:               '|';
@@ -139,11 +224,6 @@ ACCESS
     : DOT
     | COLON
     ;
-
-TYPEPATH : DEEPPATH | IDENT ;
-
-//The generic demands at least two depth i.e. path/to
-fragment DEEPPATH : (IDENT SEPARATOR)+ IDENT;
 
 //This is the groupings of mob|obj|turf etc.
 TYPE_GROUP: (IDENT BITWISE_OR)* IDENT;

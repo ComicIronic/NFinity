@@ -4,10 +4,10 @@ options { tokenVocab= NFinityLexer; }
 
 line
     : type_declare type_body
-    | (type_body_declare SEPARATOR)? method_declare expression_body
-    | (type_body_declare SEPARATOR)? verb_declare verb_body
-    | (type_body_declare SEPARATOR)? var_with_value_declare
-    | (type_body_declare SEPARATOR)? field_pure
+    | (type_body_declare separator)? method_declare expression_body
+    | (type_body_declare separator)? verb_declare verb_body
+    | (type_body_declare separator)? var_with_value_declare
+    | (type_body_declare separator)? field_pure
     | preprocess
     ;
 
@@ -31,12 +31,12 @@ expression
 
 // A number of code block sections together
 expression_body
-    : expression*
+    : INDENT expression* DEDENT
     ;
 
 //What can follow a type declaration - only assignments
 type_body
-    : pure_assignment*
+    : INDENT pure_assignment* DEDENT
     ;
 
 // The top-level kind of statement
@@ -96,11 +96,11 @@ type_body_declare
     ;
 
 type_simple_declare
-    : SEPARATOR? TYPEPATH SEPARATOR member_name
+    : separator? typepath separator member_name
     ;
 
 type_generic_declare
-    : SEPARATOR? TYPEPATH SEPARATOR member_name SEPARATOR GENERIC SEPARATOR member_name
+    : separator? typepath separator member_name separator GENERIC separator member_name
     ;
 
 var_with_value_declare
@@ -109,17 +109,17 @@ var_with_value_declare
     ;
 
 var_declare
-    : VAR SEPARATOR TYPEPATH SEPARATOR member_name
-    | VAR SEPARATOR member_name
+    : VAR separator typepath separator member_name
+    | VAR separator member_name
     ;
 
 method_declare
-    : PROC SEPARATOR member_name '(' argument_declares? ')'
-    | PROC SEPARATOR TYPEPATH SEPARATOR member_name '(' argument_declares? ')'
+    : PROC separator member_name '(' argument_declares? ')'
+    | PROC separator typepath separator member_name '(' argument_declares? ')'
     ;
 
 verb_declare
-	: VERB SEPARATOR member_name '(' argument_declares? ')'
+	: VERB separator member_name '(' argument_declares? ')'
 	;
 
 verb_body
@@ -146,7 +146,7 @@ argument_var_declare
     ;
 
 optional_var_declare
-    : TYPEPATH SEPARATOR member_name
+    : typepath separator member_name
     | member_name
     ;
 
@@ -204,7 +204,7 @@ restrictions
 
 // Generic restrictors - types, procs, verbs, or vars
 restriction
-    : TYPEPATH
+    : typepath
     | method_declare
     | verb_declare
     | var_declare
@@ -243,4 +243,13 @@ access_start
 access_part
     : method_call
     | member_name
+    ;
+
+typepath
+    : (member_name separator)* member_name
+    ;
+
+separator
+    : DIV
+    | INDENT
     ;
