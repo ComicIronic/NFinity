@@ -2,11 +2,13 @@ lexer grammar NFinityLexer;
 
 tokens { INDENT, DEDENT }
 
-@lexer::members {
+@header {package nfinity.nfinity;}
+
+@members {
   // A queue where extra tokens are pushed on (see the NEWLINE lexer rule).
-  private java.util.LinkedList<Token> tokens = new java.util.LinkedList<>();
+  private java.util.LinkedList<Token> tokens = new java.util.LinkedList<Token>();
   // The stack that keeps track of the indentation level.
-  private java.util.Stack<Integer> indents = new java.util.Stack<>();
+  private java.util.Stack<Integer> indents = new java.util.Stack<Integer>();
   // The amount of opened braces, brackets and parenthesis.
   private int opened = 0;
   // The most recently produced token.
@@ -29,7 +31,7 @@ tokens { INDENT, DEDENT }
       }
 
       // First emit an extra line break that serves as the end of the statement.
-      this.emit(commonToken(Python3Parser.NEWLINE, "\n"));
+      this.emit(commonToken(NFinityParse.NEWLINE, "\n"));
 
       // Now emit as much DEDENT tokens as needed.
       while (!indents.isEmpty()) {
@@ -38,7 +40,7 @@ tokens { INDENT, DEDENT }
       }
 
       // Put the EOF back on the token stream.
-      this.emit(commonToken(Python3Parser.EOF, "<EOF>"));
+      this.emit(commonToken(NFinityParse.EOF, "<EOF>"));
     }
 
     Token next = super.nextToken();
@@ -52,7 +54,7 @@ tokens { INDENT, DEDENT }
   }
 
   private Token createDedent() {
-    CommonToken dedent = commonToken(Python3Parser.DEDENT, "");
+    CommonToken dedent = commonToken(NFinityParse.DEDENT, "");
     dedent.setLine(this.lastToken.getLine());
     return dedent;
   }
@@ -85,14 +87,56 @@ tokens { INDENT, DEDENT }
   }
 }
 
-SINGLE_LINE_COMMENT:     '//'  INPUTCHAR*         -> skip;
-DELIMITED_COMMENT:       '/*'  .*? '*/'           -> skip;
-LINEJOINS:               LINE_JOIN                -> skip;
+NEWLINE
+ : ( {atStartOfInput()}?   SPACES
+   | LINEBREAK SPACES?
+   )
+   {
+     String newLine = getText().replaceAll("[^\r\n]+", "");
+     String spaces = getText().replaceAll("[\r\n]+", "");
+     int next = _input.LA(1);
+     if (opened > 0 || next == '\r' || next == '\n' || next == '#') {
+       // If we're inside a list or on a blank line, ignore all indents,
+       // dedents and line breaks.
+       skip();
+     }
+     else {
+       emit(commonToken(NEWLINE, newLine));
+       int indent = getIndentationCount(spaces);
+       int previous = indents.isEmpty() ? 0 : indents.peek();
+       if (indent == previous) {
+         // skip indents of the same size as the present indent-size
+         skip();
+       }
+       else if (indent > previous) {
+         indents.push(indent);
+         emit(commonToken(NFinityParse.INDENT, spaces));
+       }
+       else {
+         // Possibly emit more than 1 DEDENT token.
+         while(!indents.isEmpty() && indents.peek() > indent) {
+           this.emit(createDedent());
+           indents.pop();
+         }
+       }
+     }
+   }
+ ;
 
-fragment LINE_JOIN: '\\' SPACES? ( '\r'? '\n' | '\r' );
-fragment SPACES : [ \t]+;
+SINGLE_LINE_COMMENT:     '//'  INPUTCHAR*            -> skip;
+DELIMITED_COMMENT:       '/*'  .*? '*/'              -> skip;
+LINEJOINS:               LINE_JOIN                   -> skip;
+WHITESPACE:              SPACES                      -> skip;
 
-fragment INPUTCHAR : ~[\r\n\u0085\u2028\u2029];
+fragment LINE_JOIN: '\\' SPACES? LINEBREAK;
+fragment SPACES : [ \t]+ ;
+
+LINEBREAK
+    : '\r'? '\n'
+    | '\r'
+    ;
+
+fragment INPUTCHAR : ~[\r\n];
 
 VAR:       'var';
 PROC:      'proc';
@@ -133,38 +177,41 @@ DEFINE:    'define' ;
 UNDEF:     'undef'  ;
 INCLUDE:   'include';
 
-SINGLESTRING
+fragment SINGLESTRING
     : '"' (~["\\]|INPUTCHAR)* '"'
     | '\'' (~[\'\\]|INPUTCHAR)* '\''
     ;
 
-MULTISTRING: '{"' (~[\\])* '"}' ;
+fragment MULTISTRING: '{"' (~[\\])* '"}' ;
 
 STRING
     : SINGLESTRING
     | MULTISTRING
     ;
 
-BINARYDIGIT : [01];
+fragment BINARYDIGIT : [01];
 
 BINARY : BINARYDIGIT+ ;
 
-DECIMAL: [0-9]* '.' [0-9]+ ;
-INTEGER: [0-9]+ ;
+DECIMAL: DIGIT* '.' DIGIT+ ;
+INTEGER: DIGIT+ ;
+
+fragment DIGIT : '0'..'9';
 
 NUM
     : DECIMAL
     | INTEGER
     ;
 
-TIME_MOD
+fragment TIME_MOD
     : SECS
     | MINS
     | HOURS
     ;
 
 BARE_VALUE
-    : NUM TIME_MOD?
+    : NUM
+    | NUM TIME_MOD
     | STRING
     | BINARY
     ;
@@ -214,8 +261,14 @@ OP_LEFT_SHIFT_ASSIGNMENT: '<<=';
 ELLIPSIS:                 '...';
 HASH:                     '#';
 
-IDENTSTART : [a-z] | [A-Z] | '_' ;
-IDENTPART : IDENTSTART | [0-9] ;
+fragment IDENTSTART
+    : 'A'..'Z'
+    | 'a'..'z'
+    | '_' ;
+
+fragment IDENTPART
+    : IDENTSTART
+    | DIGIT ;
 
 //Any valid type, var, or method name follows the ident pattern
 IDENT : IDENTSTART IDENTPART*;

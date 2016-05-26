@@ -1,31 +1,37 @@
 parser grammar NFinityParse;
 
+@header {package nfinity.nfinity;}
+
 options { tokenVocab= NFinityLexer; }
 
 line
-    : type_declare type_body
-    | (type_body_declare separator)? method_declare expression_body
-    | (type_body_declare separator)? verb_declare verb_body
+    : type_declare NEWLINE type_body
+    | (type_body_declare separator)? method_declare NEWLINE expression_body
+    | (type_body_declare separator)? verb_declare NEWLINE verb_body
     | (type_body_declare separator)? var_with_value_declare
     | (type_body_declare separator)? field_pure
     | preprocess
+    | NEWLINE
     ;
 
 // Preprocessor define
 preprocess
-    : HASH (DEFINE | UNDEF | INCLUDE) statement?
+    : HASH INCLUDE STRING NEWLINE
+    | HASH DEFINE member_name statement NEWLINE
+    | HASH UNDEF member_name NEWLINE
     ;
 
 // A code block section - this can be a simple statement or a more complex block
 expression
-    : statement
+    : NEWLINE
+    | statement NEWLINE
     | IF '(' statement ')' expression_body (ELSE expression_body)?
     | FOR '(' assignment ';' statement ';' statement ')' expression_body
-    | FOR '(' var_declare IN statement ')'
-    | WHILE '(' statement ')'
+    | FOR '(' var_declare IN statement ')' expression_body
+    | WHILE '(' statement ')' expression_body
     | SWITCH '(' statement ')' (IF '(' statement ')' expression_body)* (ELSE expression_body)?
     | SPAWN '(' statement ')' expression_body
-    | RETURN statement?
+    | RETURN statement? NEWLINE
     | preprocess
     ;
 
@@ -50,11 +56,15 @@ statement
 single_statement
     : field_access
     | method_access
-    | NEW single_statement '(' arguments? ')'
     | BARE_VALUE
+    | NEW single_statement '(' arguments? ')'
     | '(' statement ')'
-    | UNARY_PRE single_statement
+    ;
+
+unary_statement
+    : UNARY_PRE single_statement
     | single_statement UNARY_POST
+    | single_statement
     ;
 
 trinary_statement
@@ -82,7 +92,7 @@ med_statement
 	;
 
 high_statement
-	: single_statement (BINARY_HIGH single_statement)*
+	: unary_statement (BINARY_HIGH unary_statement)*
 	;
 
 type_declare
@@ -123,7 +133,7 @@ verb_declare
 	;
 
 verb_body
-    : set_statement* expression_body
+    : INDENT set_statement* DEDENT expression_body
     ;
 
 set_statement
