@@ -24,6 +24,7 @@ expression
     | FOR '(' var_declare IN statement ')'
     | WHILE '(' statement ')'
     | SWITCH '(' statement ')' (IF '(' statement ')' expression_body)* (ELSE expression_body)?
+    | SPAWN '(' statement ')' expression_body
     | RETURN statement?
     | preprocess
     ;
@@ -49,6 +50,7 @@ statement
 single_statement
     : field_access
     | method_access
+    | NEW single_statement '(' arguments? ')'
     | BARE_VALUE
     | '(' statement ')'
     | UNARY_PRE single_statement
