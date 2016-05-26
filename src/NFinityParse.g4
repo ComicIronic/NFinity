@@ -4,33 +4,58 @@ options { tokenVocab= NFinityLexer; }
 
 statement
     : single_statement
-    | binary_statement
-    | UNARY_PRE statement
-    | statement UNARY_POST
+    | or_statement
     ;
 
 single_statement
     : field_access
     | method_access
     | BARE_VALUE
+    | '(' statement ')'
+    | UNARY_PRE single_statement
+    | single_statement UNARY_POST
     ;
 
-binary_statement
-    : statement BINARY_OP statement
+or_statement
+    : and_statement BINARY_OR and_statement
     ;
+
+and_statement
+	: compare_statement BINARY_AND compare_statement
+	;
+
+compare_statement
+	: low_statement BINARY_COMPARE low_statement
+	;
+
+low_statement
+	: mid_statement BINARY_LOW mid_statement
+	;
+
+mid_statement
+	: high_statement BINARY_MID high_statement
+	;
+
+high_statement
+	: single_statement BINARY_HIGH single_statement
+	;
 
 var_declare
-    : VAR SEPARATOR TYPEPATH SEPARATOR IDENT
-    | VAR SEPARATOR IDENT
+    : VAR SEPARATOR TYPEPATH SEPARATOR member_name
+    | VAR SEPARATOR member_name
     ;
 
 method_declare
-    : PROC SEPARATOR IDENT '(' argument_declares? ')'
-    | PROC SEPARATOR TYPEPATH SEPARATOR IDENT '(' argument_declares? ')'
+    : PROC SEPARATOR member_name '(' argument_declares? ')'
+    | PROC SEPARATOR TYPEPATH SEPARATOR member_name '(' argument_declares? ')'
     ;
 
+verb_declare
+	: VERB SEPARATOR member_name '(' argument_declares? ')'
+	;
+
 argument_declares
-    : (argument_declare ',')* argument_declare
+    : (argument_declare ',')* argument_declare (',' ELLIPSIS)?
     ;
 
 argument_declare
@@ -45,8 +70,8 @@ argument_var_declare
     ;
 
 optional_var_declare
-    : TYPEPATH SEPARATOR IDENT
-    | IDENT
+    : TYPEPATH SEPARATOR member_name
+    | member_name
     ;
 
 assignment
@@ -59,7 +84,7 @@ method_access
     ;
 
 method_call
-    : IDENT '(' arguments? ')'
+    : member_name '(' arguments? ')'
     ;
 
 arguments
@@ -67,26 +92,30 @@ arguments
     ;
 
 argument
-    : ELLIPSIS
-    | statement
-    | IDENT ASSIGNMENT statement
+    : statement
+    | member_name ASSIGNMENT statement
     ;
 
 field_access
-    : access_path? IDENT
+    : access_path? member_name
     ;
 
 access_path
     : access_start '.' (access_part '.')*
     ;
 
+member_name
+	: IDENT
+	;
+
 access_start
     : access_part
+    | single_statement
     | BARE_VALUE
     | SRC
     ;
 
 access_part
     : method_call
-    | IDENT
+    | member_name
     ;

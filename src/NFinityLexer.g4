@@ -149,6 +149,36 @@ BINARY_OP
     | PERCENT
     ;
 
+BINARY_OR : OP_OR ;
+
+BINARY_AND : OP_AND ;
+
+BINARY_COMPARE
+	: LT
+	| GT
+	| OP_EQ
+	| OP_NE
+	| OP_LE
+	| OP_GE
+	;
+
+BINARY_LOW
+	: PLUS
+	| MINUS
+	| BITWISE_OR
+	| AMP
+	| CARET
+	;
+
+BINARY_MED
+	: STAR
+	| DIV
+	;
+
+BINARY_HIGH
+	: PERCENT
+	;
+
 UNARY_BOTH
     : OP_INC
     | OP_DEC
@@ -160,7 +190,6 @@ UNARY_POST
 
 UNARY_PRE
     : BANG
-    | CARET
     | TILDE
     | UNARY_BOTH
     ;
