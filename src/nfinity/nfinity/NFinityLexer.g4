@@ -159,7 +159,7 @@ SET:       'set';
 SRC:       'src';
 GENERIC:   'generic';
 WHERE:     'where';
-HIDDEN:    'hidden';
+HIDSET:    'hidden';
 NAME:      'name';
 DESC:      'desc';
 CATEGORY:  'category';
@@ -355,7 +355,7 @@ VERB_SET
     : NAME
     | DESC
     | CATEGORY
-    | HIDDEN
+    | HIDSET
     | POPUP
     | INSTANT
     | INVIS
