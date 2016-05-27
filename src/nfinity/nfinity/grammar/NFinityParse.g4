@@ -1,6 +1,6 @@
 parser grammar NFinityParse;
 
-@header {package nfinity.nfinity;}
+@header {package nfinity.nfinity.grammar;}
 
 options { tokenVocab= NFinityLexer; }
 

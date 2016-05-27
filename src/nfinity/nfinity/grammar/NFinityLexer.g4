@@ -2,7 +2,7 @@ lexer grammar NFinityLexer;
 
 tokens { INDENT, DEDENT }
 
-@header {package nfinity.nfinity;}
+@header {package nfinity.nfinity.grammar;}
 
 @members {
   // A queue where extra tokens are pushed on (see the NEWLINE lexer rule).
