@@ -131,7 +131,7 @@ WHITESPACE:              SPACES                      -> skip;
 fragment LINE_JOIN: '\\' SPACES? LINEBREAK;
 fragment SPACES : [ \t]+ ;
 
-LINEBREAK
+fragment LINEBREAK
     : '\r'? '\n'
     | '\r'
     ;
@@ -159,14 +159,6 @@ SET:       'set';
 SRC:       'src';
 GENERIC:   'generic';
 WHERE:     'where';
-HIDSET:    'hidden';
-NAME:      'name';
-DESC:      'desc';
-CATEGORY:  'category';
-POPUP:     'popup_menu';
-INSTANT:   'instant';
-INVIS:     'invisbility';
-BACKG:     'background';
 SPAWN:     'spawn';
 
 SECS:      'SECONDS';
@@ -177,37 +169,17 @@ DEFINE:    'define' ;
 UNDEF:     'undef'  ;
 INCLUDE:   'include';
 
-fragment SINGLESTRING
-    : '"' (~["\\]|INPUTCHAR)* '"'
-    | '\'' (~[\'\\]|INPUTCHAR)* '\''
-    ;
+//Any valid type, var, or method name follows the ident pattern
+IDENT : IDENTSTART IDENTPART*;
 
-fragment MULTISTRING: '{"' (~[\\])* '"}' ;
+fragment IDENTSTART
+    : [A-Z]
+    | [a-z]
+    | '_' ;
 
-STRING
-    : SINGLESTRING
-    | MULTISTRING
-    ;
-
-fragment BINARYDIGIT : [01];
-
-BINARY : BINARYDIGIT+ ;
-
-DECIMAL: DIGIT* '.' DIGIT+ ;
-INTEGER: DIGIT+ ;
-
-fragment DIGIT : '0'..'9';
-
-NUM
-    : DECIMAL
-    | INTEGER
-    ;
-
-fragment TIME_MOD
-    : SECS
-    | MINS
-    | HOURS
-    ;
+fragment IDENTPART
+    : IDENTSTART
+    | DIGIT ;
 
 BARE_VALUE
     : NUM
@@ -215,6 +187,38 @@ BARE_VALUE
     | STRING
     | BINARY
     ;
+
+fragment STRING
+    : SINGLESTRING
+    | MULTISTRING
+    ;
+
+fragment SINGLESTRING
+    : '"' (~["\\]|INPUTCHAR)* '"'
+    | '\'' (~[\'\\]|INPUTCHAR)* '\''
+    ;
+
+fragment MULTISTRING: '{"' (~[\\])* '"}' ;
+
+fragment NUM
+    : DECIMAL
+    | INTEGER
+    ;
+
+fragment DECIMAL: DIGIT* '.' DIGIT+ ;
+fragment INTEGER: DIGIT+ ;
+
+fragment DIGIT : [0-9];
+
+fragment TIME_MOD
+    : SECS
+    | MINS
+    | HOURS
+    ;
+
+fragment BINARY : BINARYDIGIT+ ;
+
+fragment BINARYDIGIT : [01];
 
 OPEN_BRACKET:             '[';
 CLOSE_BRACKET:            ']';
@@ -260,18 +264,6 @@ OP_LEFT_SHIFT:            '<<';
 OP_LEFT_SHIFT_ASSIGNMENT: '<<=';
 ELLIPSIS:                 '...';
 HASH:                     '#';
-
-fragment IDENTSTART
-    : 'A'..'Z'
-    | 'a'..'z'
-    | '_' ;
-
-fragment IDENTPART
-    : IDENTSTART
-    | DIGIT ;
-
-//Any valid type, var, or method name follows the ident pattern
-IDENT : IDENTSTART IDENTPART*;
 
 ACCESS
     : DOT
@@ -362,3 +354,12 @@ VERB_SET
     | SRC
     | BACKG
     ;
+
+fragment HIDSET:    'hidden';
+fragment NAME:      'name';
+fragment DESC:      'desc';
+fragment CATEGORY:  'category';
+fragment POPUP:     'popup_menu';
+fragment INSTANT:   'instant';
+fragment INVIS:     'invisbility';
+fragment BACKG:     'background';

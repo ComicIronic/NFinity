@@ -5,70 +5,57 @@ parser grammar NFinityParse;
 options { tokenVocab= NFinityLexer; }
 
 line
-    : type_declare NEWLINE type_body
-    | (type_body_declare separator)? method_declare NEWLINE expression_body
-    | (type_body_declare separator)? verb_declare NEWLINE verb_body
-    | (type_body_declare separator)? var_with_value_declare
-    | (type_body_declare separator)? field_pure
-    | preprocess
+    : NEWLINE type_declare type_body
+    | NEWLINE (type_body_declare separator)? method_declare expression_body
+    | NEWLINE (type_body_declare separator)? verb_declare verb_body
+    | NEWLINE (type_body_declare separator)? var_with_value_declare
+    | NEWLINE (type_body_declare separator)? field_pure
+    | NEWLINE preprocess
     | NEWLINE
     ;
 
 // Preprocessor define
 preprocess
-    : HASH INCLUDE STRING NEWLINE
-    | HASH DEFINE member_name statement NEWLINE
-    | HASH UNDEF member_name NEWLINE
+    : HASH INCLUDE BARE_VALUE
+    | HASH DEFINE member_name statement
+    | HASH UNDEF member_name
     ;
 
 // A code block section - this can be a simple statement or a more complex block
 expression
-    : NEWLINE
-    | statement NEWLINE
+    : statement
     | IF '(' statement ')' expression_body (ELSE expression_body)?
     | FOR '(' assignment ';' statement ';' statement ')' expression_body
     | FOR '(' var_declare IN statement ')' expression_body
     | WHILE '(' statement ')' expression_body
-    | SWITCH '(' statement ')' (IF '(' statement ')' expression_body)* (ELSE expression_body)?
+    | SWITCH '(' statement ')' switch_body
     | SPAWN '(' statement ')' expression_body
-    | RETURN statement? NEWLINE
+    | RETURN statement?
     | preprocess
     ;
 
 // A number of code block sections together
 expression_body
-    : INDENT expression* DEDENT
+    : INDENT (expression NEWLINE)* DEDENT
     ;
 
 //What can follow a type declaration - only assignments
 type_body
-    : INDENT pure_assignment* DEDENT
+    : NEWLINE INDENT (pure_assignment NEWLINE)* DEDENT
+    ;
+
+switch_body
+    : NEWLINE INDENT (IF '(' statement ')' expression_body)* (ELSE expression_body)? DEDENT
     ;
 
 // The top-level kind of statement
 statement
-    : single_statement
+    : assignment
     | trinary_statement
-    | assignment
-    ;
-
-//The most basic kind of statement
-single_statement
-    : field_access
-    | method_access
-    | BARE_VALUE
-    | NEW single_statement '(' arguments? ')'
-    | '(' statement ')'
-    ;
-
-unary_statement
-    : UNARY_PRE single_statement
-    | single_statement UNARY_POST
-    | single_statement
     ;
 
 trinary_statement
-    : or_statement '?' statement ':' statement
+    : or_statement ('?' statement ':' statement)?
     ;
 
 or_statement
@@ -94,6 +81,21 @@ med_statement
 high_statement
 	: unary_statement (BINARY_HIGH unary_statement)*
 	;
+
+unary_statement
+    : UNARY_PRE single_statement
+    | single_statement UNARY_POST
+    | single_statement
+    ;
+
+//The most basic kind of statement
+single_statement
+    : field_access
+    | method_access
+    | BARE_VALUE
+    | NEW single_statement '(' arguments? ')'
+    | '(' statement ')'
+    ;
 
 type_declare
     : type_simple_declare
@@ -167,6 +169,7 @@ assignment
 
 pure_assignment
     : var_declare_pure
+    | var_declare
     | field_pure
     ;
 
