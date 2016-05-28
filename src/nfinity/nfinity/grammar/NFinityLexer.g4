@@ -89,7 +89,7 @@ tokens { INDENT, DEDENT }
 
 NEWLINE
  : ( {atStartOfInput()}?   SPACES
-   | LINEBREAK SPACES?
+   | LINEBREAK SPACES*
    )
    {
      String newLine = getText().replaceAll("[^\r\n]+", "");
@@ -126,17 +126,17 @@ NEWLINE
 SINGLE_LINE_COMMENT:     '//'  INPUTCHAR*            -> skip;
 DELIMITED_COMMENT:       '/*'  .*? '*/'              -> skip;
 LINEJOINS:               LINE_JOIN                   -> skip;
-WHITESPACE:              SPACES                      -> skip;
+WHITESPACE:              SPACES+                     -> skip;
 
-fragment LINE_JOIN: '\\' SPACES? LINEBREAK;
-fragment SPACES : [ \t]+ ;
+fragment LINE_JOIN: '\\' SPACES* LINEBREAK;
+fragment SPACES : ' ' | '\t' ;
 
 fragment LINEBREAK
     : '\r'? '\n'
     | '\r'
     ;
 
-fragment INPUTCHAR : ~[\r\n];
+fragment INPUTCHAR : ~('\r'| '\n');
 
 VAR:       'var';
 PROC:      'proc';
@@ -194,8 +194,8 @@ fragment STRING
     ;
 
 fragment SINGLESTRING
-    : '"' (~["\\]|INPUTCHAR)* '"'
-    | '\'' (~[\'\\]|INPUTCHAR)* '\''
+    : '"' (~["\\])* '"'
+    | '\'' (~[\'\\])* '\''
     ;
 
 fragment MULTISTRING: '{"' (~[\\])* '"}' ;

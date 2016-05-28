@@ -5,19 +5,22 @@ parser grammar NFinityParse;
 options { tokenVocab= NFinityLexer; }
 
 line
-    : NEWLINE type_declare type_body
-    | NEWLINE (type_body_declare separator)? method_declare expression_body
-    | NEWLINE (type_body_declare separator)? verb_declare verb_body
-    | NEWLINE (type_body_declare separator)? var_with_value_declare
-    | NEWLINE (type_body_declare separator)? field_pure
-    | NEWLINE preprocess
+    : type_block
+    | preprocess NEWLINE
     | NEWLINE
+    ;
+
+type_block
+    : (typepath separator)? method_declare
+    | (typepath separator)? verb_declare
+    | var_or_assignment NEWLINE
+    | (separator)? typepath NEWLINE INDENT type_block+ DEDENT
     ;
 
 // Preprocessor define
 preprocess
-    : HASH INCLUDE BARE_VALUE
-    | HASH DEFINE member_name statement
+    : HASH INCLUDE bare_value
+    | HASH DEFINE member_name statement?
     | HASH UNDEF member_name
     ;
 
@@ -36,12 +39,7 @@ expression
 
 // A number of code block sections together
 expression_body
-    : INDENT (expression NEWLINE)* DEDENT
-    ;
-
-//What can follow a type declaration - only assignments
-type_body
-    : NEWLINE INDENT (pure_assignment NEWLINE)* DEDENT
+    : NEWLINE INDENT (expression NEWLINE)* DEDENT
     ;
 
 switch_body
@@ -92,50 +90,23 @@ unary_statement
 single_statement
     : field_access
     | method_access
-    | BARE_VALUE
+    | bare_value
     | NEW single_statement '(' arguments? ')'
     | '(' statement ')'
     ;
 
-type_declare
-    : type_simple_declare
-    | type_generic_declare (WHERE restrictions)?
-    ;
-
-type_body_declare
-    : type_simple_declare
-    | type_generic_declare
-    ;
-
-type_simple_declare
-    : separator? typepath separator member_name
-    ;
-
-type_generic_declare
-    : separator? typepath separator member_name separator GENERIC separator member_name
-    ;
-
-var_with_value_declare
-    : var_declare
-    | var_declare_assignment
-    ;
-
-var_declare
-    : VAR separator typepath separator member_name
-    | VAR separator member_name
-    ;
-
 method_declare
-    : PROC separator member_name '(' argument_declares? ')'
-    | PROC separator typepath separator member_name '(' argument_declares? ')'
+    : PROC separator typepath '(' argument_declares? ')' expression_body
+    | PROC NEWLINE INDENT typepath '(' argument_declares? ')' expression_body DEDENT
     ;
 
 verb_declare
-	: VERB separator member_name '(' argument_declares? ')'
+	: VERB separator member_name '(' argument_declares? ')' verb_body
+	| VERB NEWLINE INDENT member_name '(' argument_declares? ')' verb_body DEDENT
 	;
 
 verb_body
-    : INDENT set_statement* DEDENT expression_body
+    : NEWLINE INDENT (set_statement NEWLINE)* DEDENT expression_body
     ;
 
 set_statement
@@ -158,8 +129,7 @@ argument_var_declare
     ;
 
 optional_var_declare
-    : typepath separator member_name
-    | member_name
+    : typepath
     ;
 
 assignment
@@ -167,23 +137,18 @@ assignment
     | field_assignment
     ;
 
-pure_assignment
-    : var_declare_pure
-    | var_declare
+var_or_assignment
+    : var_declare
     | field_pure
     ;
 
 var_declare_assignment
-    : var_declare_pure
-    | var_declare_op
-    ;
-
-var_declare_op
-    : var_declare ASSIGNER_OP statement
-    ;
-
-var_declare_pure
     : var_declare ASSIGNMENT statement
+    | var_declare
+    ;
+
+var_declare
+    : VAR separator typepath
     ;
 
 field_assignment
@@ -211,6 +176,13 @@ arguments
     : (argument ',')* argument
     ;
 
+// An argument in a proc call
+argument
+    : statement
+    | member_name ASSIGNMENT statement
+    | bare_value ASSIGNMENT statement
+    ;
+
 restrictions
     : (restriction ',')* restriction
     ;
@@ -221,12 +193,6 @@ restriction
     | method_declare
     | verb_declare
     | var_declare
-    ;
-
-// An argument in a proc call
-argument
-    : statement
-    | member_name ASSIGNMENT statement
     ;
 
 // When you access a var by doing dot.path.to.var
@@ -248,7 +214,7 @@ member_name
 access_start
     : access_part
     | '(' statement ')'
-    | BARE_VALUE
+    | bare_value
     | SRC
     ;
 
@@ -258,11 +224,15 @@ access_part
     | member_name
     ;
 
+bare_value
+    : BARE_VALUE
+    | separator typepath
+    ;
+
 typepath
     : (member_name separator)* member_name
     ;
 
 separator
     : DIV
-    | INDENT
     ;
