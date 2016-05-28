@@ -4,15 +4,19 @@ parser grammar NFinityParse;
 
 options { tokenVocab= NFinityLexer; }
 
+//These are various possibilites for code
 line
     : type_block
     | preprocess NEWLINE
     | NEWLINE
+    | <EOF>
     ;
 
 type_block
     : (typepath separator)? method_declare
+    | (typepath separator)? method_implement
     | (typepath separator)? verb_declare
+    | (typepath separator)? verb_implement
     | var_or_assignment NEWLINE
     | (separator)? typepath NEWLINE INDENT type_block+ DEDENT
     ;
@@ -100,10 +104,19 @@ method_declare
     | PROC NEWLINE INDENT typepath '(' argument_declares? ')' expression_body DEDENT
     ;
 
+method_implement
+    : typepath '(' argument_declares? ')' expression_body
+    ;
+
+
 verb_declare
 	: VERB separator member_name '(' argument_declares? ')' verb_body
 	| VERB NEWLINE INDENT member_name '(' argument_declares? ')' verb_body DEDENT
 	;
+
+verb_implement
+    : member_name '(' argument_declares? ')' verb_body
+    ;
 
 verb_body
     : NEWLINE INDENT (set_statement NEWLINE)* DEDENT expression_body
