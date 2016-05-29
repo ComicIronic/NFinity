@@ -150,6 +150,8 @@ BREAK:     'break';
 RETURN:    'return';
 IN:        'in';
 IF:        'if';
+IFDEF:     'ifdef';
+ELSEIF:    'elseif';
 ELSE:      'else';
 SWITCH:    'switch';
 GLOBAL:    'global';
@@ -269,9 +271,6 @@ ACCESS
     : DOT
     | COLON
     ;
-
-//This is the groupings of mob|obj|turf etc.
-TYPE_GROUP: (IDENT BITWISE_OR)* IDENT;
 
 ASSIGNER_OP
     : OP_ADD_ASSIGNMENT

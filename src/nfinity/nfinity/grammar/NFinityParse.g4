@@ -4,7 +4,7 @@ parser grammar NFinityParse;
 
 options { tokenVocab= NFinityLexer; }
 
-//These are various possibilites for code
+//These are various possibilites for code sections
 line
     : type_block
     | preprocess NEWLINE
@@ -12,24 +12,30 @@ line
     | <EOF>
     ;
 
+//A type block defines some behaviour for a type
+//This can be a new proc, an existing proc, a new verb, an existing verb, a new var, an existing var, or a nested type
 type_block
-    : (typepath separator)? method_declare
-    | (typepath separator)? method_implement
-    | (typepath separator)? verb_declare
-    | (typepath separator)? verb_implement
-    | var_or_assignment NEWLINE
+    : typepath? separator? method_declare
+    | typepath? separator? method_implement
+    | typepath? separator? verb_declare
+    | typepath? separator? verb_implement
+    | typepath? separator? var_or_assignment NEWLINE
     | (separator)? typepath NEWLINE INDENT type_block+ DEDENT
     ;
 
-// Preprocessor define
+// Preprocessor defines and includes
 preprocess
     : HASH INCLUDE bare_value
     | HASH DEFINE member_name statement?
     | HASH UNDEF member_name
+    | HASH IFDEF member_name
+    | HASH ELSEIF member_name
+    | HASH ELSE member_name
     ;
 
 // A code block section - this can be a simple statement or a more complex block
 expression
+    //method call, field access, etc
     : statement
     | IF '(' statement ')' expression_body (ELSE expression_body)?
     | FOR '(' assignment ';' statement ';' statement ')' expression_body
@@ -46,16 +52,20 @@ expression_body
     : NEWLINE INDENT (expression NEWLINE)* DEDENT
     ;
 
+//The body of a switch statement - multiple if blocks, and then an else block
 switch_body
     : NEWLINE INDENT (IF '(' statement ')' expression_body)* (ELSE expression_body)? DEDENT
     ;
 
 // The top-level kind of statement
 statement
+    //These are new vars or existing ones being assigned
     : assignment
+    //This is the top of the statement tree
     | trinary_statement
     ;
 
+//Trinary statements are simplified if elses
 trinary_statement
     : or_statement ('?' statement ':' statement)?
     ;
@@ -72,6 +82,7 @@ compare_statement
 	: low_statement (BINARY_COMPARE low_statement)*
 	;
 
+//See the lexer file for how these are prioritised
 low_statement
 	: med_statement (BINARY_LOW med_statement)*
 	;
@@ -92,66 +103,82 @@ unary_statement
 
 //The most basic kind of statement
 single_statement
+    //When you get a field
     : field_access
+    //When you call a proc
     | method_access
+    //When you type in a string, a number, or a typepath
     | bare_value
+    //Then you create something
     | NEW single_statement '(' arguments? ')'
+    //Nesting for statements
     | '(' statement ')'
     ;
 
+//This is when new procs are defined
 method_declare
     : PROC separator typepath '(' argument_declares? ')' expression_body
     | PROC NEWLINE INDENT typepath '(' argument_declares? ')' expression_body DEDENT
     ;
 
+//This is when existing procs are implemented
 method_implement
     : typepath '(' argument_declares? ')' expression_body
     ;
 
-
+//This is when new verbs are defined
 verb_declare
 	: VERB separator member_name '(' argument_declares? ')' verb_body
 	| VERB NEWLINE INDENT member_name '(' argument_declares? ')' verb_body DEDENT
 	;
 
+//This is when existing verbs are implemented
 verb_implement
     : member_name '(' argument_declares? ')' verb_body
     ;
 
+//This is what a verb can contain
 verb_body
     : NEWLINE INDENT (set_statement NEWLINE)* DEDENT expression_body
     ;
 
+//These are verb set lines e.g. set name = "this verb name"
 set_statement
     : SET VERB_SET (AS | ASSIGNMENT) statement
     ;
 
+//These are the way you declare arguments for procs
 argument_declares
     : (argument_declare ',')* argument_declare (',' ELLIPSIS)?
     ;
 
+//Each argument can have a value or not
 argument_declare
-    : argument_var_declare
+    : argument_var_declare AS (IDENT BITWISE_OR)* IDENT
     | argument_var_declare ASSIGNMENT statement
-    | argument_var_declare AS TYPE_GROUP
+    | argument_var_declare
     ;
 
+//Since byond allows both var/this and just this, we allow both
 argument_var_declare
     : var_declare
     | optional_var_declare
     ;
 
+//No var means you just give a typepath
 optional_var_declare
     : typepath
     ;
 
+//Just when a is set to b (possibly with an operator assignment e.g. a *= b)
 assignment
     : var_declare_assignment
     | field_assignment
     ;
 
+//Since var declares can never be the result of op assigns, this is just var declares or pures
 var_or_assignment
-    : var_declare
+    : var_declare_assignment
     | field_pure
     ;
 
@@ -164,38 +191,45 @@ var_declare
     : VAR separator typepath
     ;
 
+//Any kind of existing var assignment
 field_assignment
     : field_op
     | field_pure
     ;
 
+//When a var is set using an operator + the assignment e.g. +=
 field_op
     : field_access ASSIGNER_OP statement
     ;
 
+//When the existing var is just set
 field_pure
     : field_access ASSIGNMENT statement
     ;
 
+//When a proc is called
 method_access
     : access_path? method_call
     ;
 
+//Where the proc call actually happens
 method_call
     : member_name '(' arguments? ')'
     ;
 
+//Proc arguments
 arguments
     : (argument ',')* argument
     ;
 
-// An argument in a proc call
+// An argument in a proc call - some of this is for the list() special case
 argument
     : statement
     | member_name ASSIGNMENT statement
     | bare_value ASSIGNMENT statement
     ;
 
+//Generic restriction block
 restrictions
     : (restriction ',')* restriction
     ;
@@ -237,15 +271,18 @@ access_part
     | member_name
     ;
 
+//Possible bare values are strings, nums (including binary) and typepaths with a starting /
 bare_value
     : BARE_VALUE
     | separator typepath
     ;
 
+//A typepath - no leading / is enforced
 typepath
     : (member_name separator)* member_name
     ;
 
+//What separates typepaths out
 separator
     : DIV
     ;
