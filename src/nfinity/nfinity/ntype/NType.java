@@ -9,6 +9,7 @@ import nfinity.nfinity.nmember.NMethod;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * Created by Comic on 21/05/2016.
@@ -17,6 +18,8 @@ public class NType {
 	public static NType Null = new Null(null, null);
 	
     public NType ParentType;
+
+    public String TypeName;
 
     public NContext TypeContext;
 
@@ -79,5 +82,31 @@ public class NType {
             castType = castType.ParentType;
         }
         return false;
+    }
+
+    /**
+     * Creates the formatted typepath for this type
+     * @return
+     */
+    public String typepath() {
+        Stack<String> typenames = new Stack<String>();
+
+        typenames.push(this.TypeName);
+
+        NType parent = ParentType;
+
+        while(parent != NType.Null) {
+            typenames.push(parent.TypeName);
+            parent = parent.ParentType;
+        }
+
+        StringBuilder pathBuilder = new StringBuilder();
+
+
+        while(!typenames.isEmpty()) {
+            pathBuilder.append('/').append(typenames.pop());
+        }
+
+        return pathBuilder.toString();
     }
 }
