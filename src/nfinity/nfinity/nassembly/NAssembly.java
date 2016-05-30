@@ -89,6 +89,84 @@ public class NAssembly {
     }
 
     /**
+     * Finds the type of a properly given path, or creates the type
+     * @param typepath
+     * @return
+     */
+    public NType getTypeOrCreateInPath(String typepath) {
+        try {
+            return getTypeInPath(typepath);
+        } catch (NTypeNotFoundException e) {
+        }
+
+        int first_separator = typepath.indexOf("/");
+
+        String baseName = typepath;
+
+        NType baseType = null;
+
+        //If true, we skip searching steps because we can't find children of a new type
+        boolean created = false;
+
+        if(first_separator != -1) {
+            baseName = typepath.substring(0, first_separator);
+        }
+
+        for (NType type : this.Types) {
+            if (type.TypeName == baseName) {
+                baseType = type;
+            }
+        }
+
+        if(baseType == null) {
+            baseType = new NType(NType.Null, this);
+            baseType.TypeName = baseName;
+            created = true;
+        }
+
+        String[] pathparts = typepath.split("/");
+
+        if(baseType.TypeName != typepath) {
+            return getChildTypeOrCreateInPath(baseType, typepath);
+        } else {
+            return baseType;
+        }
+    }
+
+    public NType getChildTypeOrCreateInPath(NType parentType, String typepath) {
+        try {
+            return getChildTypeInPath(parentType, typepath);
+        } catch (NTypeNotFoundException e) {
+        }
+
+        String[] pathparts = typepath.split("/");
+
+        NType currentType = parentType;
+
+        boolean created = false;
+
+        for(int step = 1; step < pathparts.length; step++) {
+            String typename = pathparts[step];
+
+            if(!created) {
+                try {
+                    currentType = getChildTypeInPath(currentType, pathparts[step]);
+                } catch (NTypeNotFoundException e) {
+                    //Creates the child type
+                    currentType = new NType(currentType, this);
+                    currentType.TypeName = pathparts[step];
+                    created = true;
+                }
+            } else {
+                currentType = new NType(currentType, this);
+                currentType.TypeName = pathparts[step];
+            }
+        }
+
+        return currentType;
+    }
+
+    /**
      * Finds the type of a properly given path
      * @param typepath
      * @return
