@@ -45,6 +45,7 @@ public class TypeContext extends NContext {
         }
     }
 
+    @Override
     public NType getType() {
         return Type;
     }

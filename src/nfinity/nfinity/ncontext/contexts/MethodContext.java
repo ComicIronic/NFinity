@@ -32,6 +32,7 @@ public class MethodContext extends NContext {
     	MethodOwner = method;
     }
 
+    @Override
     public NType getType() {
         return MethodOwner.TypeOwner;
     }
@@ -41,7 +42,7 @@ public class MethodContext extends NContext {
     }
 
     public void addMethod(NMethod method) {
-        Nterpreter.error(filePath, lineNumber, "Methods cannot be declared inside other code!");
+        Nterpreter.error(Nterpreter.FilePath, Nterpreter.LineNumber, "Methods cannot be declared inside other code!");
     }
 
     public boolean canAccess(NMember member) {

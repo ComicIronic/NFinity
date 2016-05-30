@@ -27,6 +27,7 @@ public class WorldContext extends NContext {
     	Assembly = assembly;
     }
 
+    @Override
     public NType getType() {
         return Assembly.World;
     }

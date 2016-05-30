@@ -24,6 +24,7 @@ public class SubContext extends MethodContext {
     	ParentContext = parent;
     }
 
+    @Override
     public NType getType() {
         return ParentContext.getType();
     }

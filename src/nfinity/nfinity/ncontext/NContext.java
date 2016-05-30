@@ -2,6 +2,7 @@ package nfinity.nfinity.ncontext;
 
 import nfinity.nfinity.nmember.*;
 import nfinity.nfinity.nassembly.NAssembly;
+import nfinity.nfinity.ntype.NType;
 
 import java.util.List;
 
@@ -16,6 +17,8 @@ public abstract class NContext {
     public abstract List<NMethod> Methods();
 
     public abstract boolean canAccess(NMember member);
+
+    public abstract NType getType();
 
     public NContext() {
         Assembly = null;
