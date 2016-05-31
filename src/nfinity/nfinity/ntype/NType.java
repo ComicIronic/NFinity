@@ -25,6 +25,10 @@ public class NType {
 
     public List<NMethod> Methods = new ArrayList<NMethod>();
     public List<NField> Fields = new ArrayList<NField>();
+
+    public boolean Abstract = false;
+
+    public boolean Final = false;
     
     public NAssembly Assembly;
 

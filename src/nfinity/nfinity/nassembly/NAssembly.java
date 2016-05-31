@@ -1,5 +1,6 @@
 package nfinity.nfinity.nassembly;
 
+import nfinity.nfinity.exceptions.NTypeCannotExtendException;
 import nfinity.nfinity.exceptions.NTypeNotFoundException;
 import nfinity.nfinity.ncontext.NContext;
 import nfinity.nfinity.ncontext.contexts.WorldContext;
@@ -93,7 +94,7 @@ public class NAssembly {
      * @param typepath
      * @return
      */
-    public NType getTypeOrCreateInPath(String typepath) {
+    public NType getTypeOrCreateInPath(String typepath) throws NTypeCannotExtendException {
         try {
             return getTypeInPath(typepath);
         } catch (NTypeNotFoundException e) {
@@ -119,7 +120,8 @@ public class NAssembly {
         }
 
         if(baseType == null) {
-            baseType = new NType(NType.Null, this);
+            //All new user-defined types inherit datum
+            baseType = new NType(Datum, this);
             baseType.TypeName = baseName;
             created = true;
         }
@@ -133,10 +135,15 @@ public class NAssembly {
         }
     }
 
-    public NType getChildTypeOrCreateInPath(NType parentType, String typepath) {
+    public NType getChildTypeOrCreateInPath(NType parentType, String typepath) throws NTypeCannotExtendException {
         try {
             return getChildTypeInPath(parentType, typepath);
         } catch (NTypeNotFoundException e) {
+        }
+
+        //This is technically handled below, but let's save legwork here
+        if(parentType.Final) {
+            throw new NTypeCannotExtendException(parentType.typepath());
         }
 
         String[] pathparts = typepath.split("/");
@@ -151,7 +158,13 @@ public class NAssembly {
             if(!created) {
                 try {
                     currentType = getChildTypeInPath(currentType, pathparts[step]);
+
                 } catch (NTypeNotFoundException e) {
+
+                    if(currentType.Final) {
+                        throw new NTypeCannotExtendException(currentType.typepath());
+                    }
+
                     //Creates the child type
                     currentType = new NType(currentType, this);
                     currentType.TypeName = pathparts[step];
