@@ -334,7 +334,7 @@ BINARY_HIGH
 	: PERCENT
 	;
 
-UNARY_BOTH
+fragment UNARY_BOTH
     : OP_INC
     | OP_DEC
     ;

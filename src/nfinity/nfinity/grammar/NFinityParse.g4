@@ -15,12 +15,12 @@ line
 //A type block defines some behaviour for a type
 //This can be a new proc, an existing proc, a new verb, an existing verb, a new var, an existing var, or a nested type
 type_block
-    : typepath? separator? method_declare
-    | typepath? separator? method_implement
-    | typepath? separator? verb_declare
-    | typepath? separator? verb_implement
-    | typepath? separator? var_or_assignment NEWLINE
-    | (separator)? typepath NEWLINE INDENT type_block+ DEDENT
+    : (type_declare? separator)? method_declare
+    | (type_declare? separator)? method_implement
+    | (type_declare? separator)? verb_declare
+    | (type_declare? separator)? verb_implement
+    | (type_declare? separator)? var_or_assignment NEWLINE
+    | type_declare separator? NEWLINE INDENT type_block+ DEDENT
     ;
 
 // Preprocessor defines and includes
@@ -117,13 +117,13 @@ single_statement
 
 //This is when new procs are defined
 method_declare
-    : PROC separator (access_modifier separator)? typepath '(' argument_declares? ')' expression_body
-    | PROC NEWLINE INDENT (access_modifier separator)? typepath '(' argument_declares? ')' expression_body DEDENT
+    : PROC separator (access_modifier separator)? (typepath separator)? member_name '(' argument_declares? ')' expression_body
+    | PROC NEWLINE INDENT (access_modifier separator)? (typepath separator)? member_name'(' argument_declares? ')' expression_body DEDENT
     ;
 
 //This is when existing procs are implemented
 method_implement
-    : typepath '(' argument_declares? ')' expression_body
+    : member_name '(' argument_declares? ')' expression_body
     ;
 
 //This is when new verbs are defined
@@ -139,7 +139,7 @@ verb_implement
 
 //This is what a verb can contain
 verb_body
-    : NEWLINE INDENT (set_statement NEWLINE)* DEDENT expression_body
+    : NEWLINE INDENT (set_statement NEWLINE)* (expression NEWLINE)* DEDENT
     ;
 
 //These are verb set lines e.g. set name = "this verb name"
@@ -249,16 +249,16 @@ access_modifier
     | PRIVATE
     ;
 
+type_declare
+    : separator? ((typepath separator)? ABSTRACT separator)? typepath
+    | separator? (typepath separator)? GENERIC separator member_name (WHERE restrictions)?
+    ;
+
 scope_modifier
 	: GLOBAL
 	| STATIC
 	| CONST
 	;
-
-type_modifier
-    : ABSTRACT
-    | GENERIC
-    ;
 
 // When you access a var by doing dot.path.to.var
 field_access
