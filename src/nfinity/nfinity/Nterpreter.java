@@ -1,8 +1,22 @@
 package nfinity.nfinity;
 
+import nfinity.nfinity.exceptions.NTypeCannotExtendException;
+import nfinity.nfinity.exceptions.NTypeNotFoundException;
+import nfinity.nfinity.grammar.NFinityLexer;
+import nfinity.nfinity.grammar.NFinityParse;
+import nfinity.nfinity.nassembly.NAssembly;
+import nfinity.nfinity.ncontext.NAccess;
+import nfinity.nfinity.nmember.NField;
+import nfinity.nfinity.nmember.NMethod;
 import nfinity.nfinity.nproject.NProject;
 import nfinity.nfinity.ncontext.NContext;
+import nfinity.nfinity.nsignature.NArg;
+import nfinity.nfinity.nsignature.NSignature;
+import nfinity.nfinity.ntype.NType;
 import nfinity.nfinity.util.ListUtils;
+import org.antlr.v4.runtime.ANTLRFileStream;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -10,26 +24,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.MatchResult;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by Comic on 21/05/2016.
  */
 public class Nterpreter {
-
-    public static String DEFINE = "#define";
-
-    public static String INCLUDE = "#include";
-
-    public static Pattern definePattern = Pattern.compile("#define[\\s]+([A-Za-z0-9_]+)([\\s]+([A-Za-z0-9_]+))?");
-
-    public static Pattern includePattern = Pattern.compile("#include \"([A-Za-z0-9_\\/\\\\\\.]+)\"");
-
     public static List<String> Warnings = new ArrayList<String>();
 
     public static List<String> Errors = new ArrayList<String>();
+
+    public static NProject CurrentProject = null;
+
+    public static Path FilePath;
+    public static int LineNumber;
 
     /**
      * Creates an NProject from the given DME Path, including creating new copies of all included code files if they don't already exist
@@ -40,30 +47,10 @@ public class Nterpreter {
     public static NProject openProject(Path filePath) throws FileNotFoundException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath.toString())));
 
-        NProject project = new NProject();
+        CurrentProject = new NProject();
 
-        try {
-            int linecount = 0;
+        processFile(filePath);
 
-            do {
-                String line = reader.readLine();
-                linecount++;
-
-                if(line.startsWith("//")) {
-                    continue;
-                }
-
-                if(addDefine(project, line)) {
-                } else if(addInclude(project, line)) {
-                } else {
-                    warn(filePath, linecount, "This line is not the proper format for a #define or an #include.");
-                }
-            } while (reader.ready());
-        }
-        catch (IOException e) {
-
-        }
-        
         for(String error : getErrors()) {
         	System.out.println(error);
         }
@@ -72,7 +59,7 @@ public class Nterpreter {
         	System.out.println(warning);
         }
 
-        return project;
+        return CurrentProject;
     }
 
     /**
@@ -80,7 +67,7 @@ public class Nterpreter {
      * @param filepath
      * @return
      */
-    private static Path convertFile(Path filepath) {
+    public static Path convertFile(Path filepath) {
         Path parent = filepath.getParent();
 
         Path convertedPath = Paths.get(parent.toString(), filepath.getFileName().toString().replace(".dm", ".idm"));
@@ -95,63 +82,152 @@ public class Nterpreter {
         return convertedPath;
     }
     
-    public static void assemble(NProject project) {
-    	project.Assembly.reset();
+    public static void assemble(NProject CurrentProject) {
+    	CurrentProject.Assembly.reset();
     	
-    	NContext context = project.Assembly.WorldContext;
-    	
-    	for(Path filePath : project.Files) {
-    		try {
-    			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath.toString())));
-    			
-    			do {
-    				
-    			} while(reader.ready());
-    			
-    		} catch (IOException e) {
-    			warn(filePath, 0, "Could not read file.");
-    		}
+    	for(Path filePath : CurrentProject.Files) {
+            processFile(filePath);
     	}
     }
 
-    public static boolean addDefine(NProject project, String line) {
-        if(line.startsWith(DEFINE)) {
-            Matcher matcher = definePattern.matcher(line);
-            MatchResult result = matcher.toMatchResult();
+    private static void processFile(Path filePath) {
+        try {
+            ANTLRInputStream fileStream = new ANTLRFileStream(filePath.toString());
 
-            if (result.groupCount() == 3) {
-                String defineName = result.group(1);
-                String defineValue = result.group(3);
+            NFinityLexer lexer = new NFinityLexer(fileStream);
 
-                project.Defines.put(defineName, defineValue);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
 
-                return true;
-            } else if (result.groupCount() == 1) {
-                project.Defines.put(result.group(1), "");
-                return true;
-            } else {
-                return false;
+            NFinityParse parser = new NFinityParse(tokens);
+
+            while(!parser.isMatchedEOF()) {
+                NFinityParse.LineContext line = parser.line();
+
+                if(line != null) {
+                    processLine(line);
+                }
             }
-        } else {
-            return false;
+
+        } catch (IOException e) {
+            error(filePath, 0, "Could not read file.");
         }
     }
 
-    public static boolean addInclude(NProject project, String line) {
-        if(line.startsWith(INCLUDE)) {
-            MatchResult pathResult = includePattern.matcher(line).toMatchResult();
+    private static void processLine(NFinityParse.LineContext context) {
+        NFinityParse.PreprocessContext preprocessor = context.preprocess();
 
-            if(pathResult.groupCount() == 1) {
-                Path foundPath = Paths.get(project.Defines.get("FILE_DIR"), pathResult.group(1));
-
-                project.Files.add(convertFile(foundPath));
-                return true;
-            } else {
-                return false;
+        if(preprocessor != null) {
+            if(preprocessor.DEFINE() != null) {
+                CurrentProject.Defines.put(preprocessor.member_name().getText(), preprocessor.statement() != null? preprocessor.statement().getText() : "");
+                return;
             }
-        } else {
-            return false;
+
+            if(preprocessor.UNDEF() != null) {
+                CurrentProject.Defines.remove(preprocessor.member_name().getText());
+                return;
+            }
+
+            if(preprocessor.INCLUDE() != null) {
+                CurrentProject.addInclude(preprocessor.bare_value().getText());
+                return;
+            }
+
+            return;
         }
+
+        NFinityParse.Type_blockContext typeContext = context.type_block();
+
+        if(typeContext != null) {
+            processType(typeContext);
+        }
+
+        return;
+    }
+
+    private static void processType(NFinityParse.Type_blockContext typeContext) {
+        String typepath = "";
+
+        if(typeContext.type_declare() != null) {
+          for(NFinityParse.TypepathContext context : typeContext.type_declare().typepath()) {
+              typepath += (typepath.length() > 0 ? "/" : "") + context.getText();
+          }
+        }
+
+        NType currentType = CurrentProject.CurrentContext.getType();
+
+        if(typepath != "") {
+            NType pathedType = CurrentProject.Assembly.World;
+            try {
+                if (CurrentProject.CurrentContext == CurrentProject.Assembly.WorldContext) {
+                    pathedType = CurrentProject.Assembly.getTypeOrCreateInPath(typepath);
+                } else {
+                    pathedType = CurrentProject.Assembly.getChildTypeOrCreateInPath(CurrentProject.CurrentContext.getType(), typepath);
+                }
+            } catch (NTypeCannotExtendException e) {
+                error(Nterpreter.FilePath, Nterpreter.LineNumber, "Attempted to extend an inextendable type: " + e.FinalType);
+                return;
+            }
+
+            if(typeContext.type_declare().ABSTRACT() != null) {
+                pathedType.Abstract = true;
+            }
+
+            CurrentProject.CurrentContext = pathedType.TypeContext;
+        }
+
+        NFinityParse.Method_declareContext methodDeclareContext = typeContext.method_declare();
+
+        if(methodDeclareContext != null) {
+            NAccess access = NAccess.Default;
+            if(methodDeclareContext.access_modifier() != null) {
+                access = NAccess.valueOf(methodDeclareContext.access_modifier().getText());
+            }
+
+            try {
+                NSignature signature = new NSignature(
+                        methodDeclareContext.member_name().getText(),
+                        CurrentProject.Assembly.getTypeInPath(methodDeclareContext.typepath().getText()),
+                        access,
+                        processArgs(methodDeclareContext.argument_declares()));
+
+                NMethod method = new NMethod(CurrentProject.CurrentContext, signature);
+            } catch (NTypeNotFoundException e) {
+                error(Nterpreter.FilePath, Nterpreter.LineNumber, "Could not find the type " + e.FailedType);
+                return;
+            }
+        }
+    }
+
+    public static NArg[] processArgs(NFinityParse.Argument_declaresContext arguments) {
+        List<NArg> args = new ArrayList<NArg>();
+
+        for(NFinityParse.Argument_declareContext argument : arguments.argument_declare()) {
+
+            try {
+                NField produced = processVar(argument.argument_var_declare().optional_var_declare());
+            } catch (NTypeNotFoundException e) {
+                error(Nterpreter.FilePath, Nterpreter.LineNumber, "Could not find type " + e.FailedType);
+            }
+        }
+
+        return args.toArray(new NArg[args.size()]);
+    }
+
+    public static NField processVar(NFinityParse.Optional_var_declareContext context) throws NTypeNotFoundException {
+        NAccess access = NAccess.Default;
+        if(context.access_modifier() != null) {
+            access = NAccess.valueOf(context.access_modifier().getText());
+        }
+
+        NType fieldType = CurrentProject.Assembly.Any;
+
+        if(context.typepath() != null) {
+            fieldType = CurrentProject.Assembly.getTypeInPath(context.typepath().getText());
+        }
+
+        NSignature signature = new NSignature(context.member_name().getText(), fieldType, access);
+
+        return new NField(CurrentProject.CurrentContext, signature);
     }
 
     /**

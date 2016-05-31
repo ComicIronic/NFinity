@@ -7,5 +7,6 @@ public enum NAccess {
     Member,
     Private,
     Protected,
-    Public
+    Public,
+    Default
 }
