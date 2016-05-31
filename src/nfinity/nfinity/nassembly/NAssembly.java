@@ -190,7 +190,7 @@ public class NAssembly {
         }
 
         if(baseType == null) {
-            throw new NTypeNotFoundException();
+            throw new NTypeNotFoundException(typepath);
         }
 
         if(baseName != typepath) {
@@ -225,7 +225,7 @@ public class NAssembly {
             }
 
             if(found == null) {
-                throw new NTypeNotFoundException();
+                throw new NTypeNotFoundException(parentType.typepath() + "/" + path);
             }
 
             currentType = found;
