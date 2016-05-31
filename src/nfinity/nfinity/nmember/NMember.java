@@ -10,17 +10,17 @@ import nfinity.nfinity.ntype.NType;
  * Created by Comic on 21/05/2016.
  */
 public abstract class NMember {
-    public NType TypeOwner;
+    public NContext Owner;
 
     public NSignature Signature;
 
     public NMember() {
-    	TypeOwner = NType.Null;
+    	Owner = null;
         Signature = new NSignature("", NType.Null, NAccess.Private);
     }
 
-    public NMember(NType owner, NSignature signature) {
-        TypeOwner = owner;
+    public NMember(NContext owner, NSignature signature) {
+        Owner = owner;
         Signature = signature;
     }
 }

@@ -37,11 +37,11 @@ public class GenericBase extends NType {
         NType instance = genericInstance(specificType);
 
         for(NMethod method : Methods) {
-            instance.Methods.add(new NMethod(instance, method.Signature.degenerize(GenericType, specificType)));
+            instance.Methods.add(new NMethod(instance.TypeContext, method.Signature.degenerize(GenericType, specificType)));
         }
 
         for(NField field : Fields) {
-            instance.Fields.add(new NField(instance, field.Signature.degenerize(GenericType, specificType)));
+            instance.Fields.add(new NField(instance.TypeContext, field.Signature.degenerize(GenericType, specificType)));
         }
 
         return instance;
