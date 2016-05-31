@@ -188,7 +188,7 @@ var_declare
 
 //No var means you just give a typepath
 optional_var_declare
-    : (access_modifier separator)? (scope_modifier separator)? typepath
+    : (access_modifier separator)? (scope_modifier separator)? (typepath separator)? member_name
     ;
 
 //Any kind of existing var assignment
