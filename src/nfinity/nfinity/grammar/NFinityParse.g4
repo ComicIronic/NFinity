@@ -117,8 +117,8 @@ single_statement
 
 //This is when new procs are defined
 method_declare
-    : PROC separator typepath '(' argument_declares? ')' expression_body
-    | PROC NEWLINE INDENT typepath '(' argument_declares? ')' expression_body DEDENT
+    : PROC separator (access_modifier separator)? typepath '(' argument_declares? ')' expression_body
+    | PROC NEWLINE INDENT (access_modifier separator)? typepath '(' argument_declares? ')' expression_body DEDENT
     ;
 
 //This is when existing procs are implemented
@@ -165,11 +165,6 @@ argument_var_declare
     | optional_var_declare
     ;
 
-//No var means you just give a typepath
-optional_var_declare
-    : typepath
-    ;
-
 //Just when a is set to b (possibly with an operator assignment e.g. a *= b)
 assignment
     : var_declare_assignment
@@ -188,7 +183,12 @@ var_declare_assignment
     ;
 
 var_declare
-    : VAR separator typepath
+    : VAR separator optional_var_declare
+    ;
+
+//No var means you just give a typepath
+optional_var_declare
+    : (access_modifier separator)? (scope_modifier separator)? typepath
     ;
 
 //Any kind of existing var assignment
@@ -242,6 +242,22 @@ restriction
     | var_declare
     ;
 
+access_modifier
+    : PUBLIC
+    | PRIVATE
+    ;
+
+scope_modifier
+	: GLOBAL
+	| STATIC
+	| CONST
+	;
+
+type_modifier
+    : ABSTRACT
+    | GENERIC
+    ;
+
 // When you access a var by doing dot.path.to.var
 field_access
     : access_path? member_name
@@ -271,9 +287,12 @@ access_part
     | member_name
     ;
 
-//Possible bare values are strings, nums (including binary) and typepaths with a starting /
+//Possible bare values are strings, nums (including binary), the null identifier and typepaths with a starting /
 bare_value
-    : BARE_VALUE
+    : NUM
+    | STRING
+    | BINARY
+    | NULL
     | separator typepath
     ;
 

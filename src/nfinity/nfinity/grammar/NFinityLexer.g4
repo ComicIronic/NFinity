@@ -5,6 +5,9 @@ tokens { INDENT, DEDENT }
 @header {package nfinity.nfinity.grammar;}
 
 @members {
+  //Used by interpreter for line warnings and errors
+  public int LineCount = 1;
+
   // A queue where extra tokens are pushed on (see the NEWLINE lexer rule).
   private java.util.LinkedList<Token> tokens = new java.util.LinkedList<Token>();
   // The stack that keeps track of the indentation level.
@@ -92,10 +95,12 @@ NEWLINE
    | LINEBREAK SPACES*
    )
    {
+     LineCount++;
+     
      String newLine = getText().replaceAll("[^\r\n]+", "");
      String spaces = getText().replaceAll("[\r\n]+", "");
      int next = _input.LA(1);
-     if (opened > 0 || next == '\r' || next == '\n' || next == '#') {
+     if (opened > 0 || next == '\r' || next == '\n' || next == '//') {
        // If we're inside a list or on a blank line, ignore all indents,
        // dedents and line breaks.
        skip();
@@ -154,14 +159,23 @@ IFDEF:     'ifdef';
 ELSEIF:    'elseif';
 ELSE:      'else';
 SWITCH:    'switch';
-GLOBAL:    'global';
 TO:        'to';
 AS:        'as';
 SET:       'set';
 SRC:       'src';
-GENERIC:   'generic';
+NULL:      'null';
 WHERE:     'where';
 SPAWN:     'spawn';
+
+PUBLIC:    'public';
+PRIVATE:   'private';
+
+CONST:     'const';
+GLOBAL:    'global';
+STATIC:    'static';
+
+GENERIC:   'generic';
+ABSTRACT:  'abstract';
 
 SECS:      'SECONDS';
 MINS:      'MINUTES';
@@ -183,14 +197,7 @@ fragment IDENTPART
     : IDENTSTART
     | DIGIT ;
 
-BARE_VALUE
-    : NUM
-    | NUM TIME_MOD
-    | STRING
-    | BINARY
-    ;
-
-fragment STRING
+STRING
     : SINGLESTRING
     | MULTISTRING
     ;
@@ -202,7 +209,7 @@ fragment SINGLESTRING
 
 fragment MULTISTRING: '{"' (~[\\])* '"}' ;
 
-fragment NUM
+NUM
     : DECIMAL
     | INTEGER
     ;
@@ -212,13 +219,13 @@ fragment INTEGER: DIGIT+ ;
 
 fragment DIGIT : [0-9];
 
-fragment TIME_MOD
+TIME_MOD
     : SECS
     | MINS
     | HOURS
     ;
 
-fragment BINARY : BINARYDIGIT+ ;
+BINARY : BINARYDIGIT+ ;
 
 fragment BINARYDIGIT : [01];
 
