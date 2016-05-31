@@ -214,7 +214,9 @@ method_access
 
 //Where the proc call actually happens
 method_call
-    : member_name '(' arguments? ')'
+	: DOT '(' arguments? ')'
+	| DOT DOT '(' arguments ? ')'
+    | member_name '(' arguments? ')'
     ;
 
 //Proc arguments
