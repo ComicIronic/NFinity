@@ -198,36 +198,57 @@ public class Nterpreter {
         }
     }
 
-    public static NArg[] processArgs(NFinityParse.Argument_declaresContext arguments) {
+    public static NArg[] processArgs(NFinityParse.Argument_declaresContext arguments) throws NArgDeclareException {
         List<NArg> args = new ArrayList<NArg>();
 
+        boolean failure = false;
+        
         for(NFinityParse.Argument_declareContext argument : arguments.argument_declare()) {
 
+        	NField produced = null;
+        	
             try {
-                NField produced = processVar(argument.argument_var_declare().optional_var_declare());
+                produced = processVar(argument.argument_var_declare().optional_var_declare());
             } catch (NTypeNotFoundException e) {
                 error(Nterpreter.FilePath, Nterpreter.LineNumber, "Could not find type " + e.FailedType);
+                failure = true;
+            } catch (NMemberDeclareException e) {
+            	error(Nterpreter.FilePath, Nterpreter.LineNumber, "Could not create variable " + e.MemberName + ": " + e.Message);
+            	failure = true;
             }
+        }
+        
+        if(failure) {
+        	throw new NArgDeclareException("Arguments were not defined properly");
         }
 
         return args.toArray(new NArg[args.size()]);
     }
 
-    public static NField processVar(NFinityParse.Optional_var_declareContext context) throws NTypeNotFoundException {
+    public static NField processVar(NFinityParse.Optional_var_declareContext context) throws NTypeNotFoundException, NMemberDeclareException {
         NAccess access = NAccess.Default;
         if(context.access_modifier() != null) {
             access = NAccess.valueOf(context.access_modifier().getText());
         }
 
+        String fieldName = context.member_name().getText();
         NType fieldType = CurrentProject.Assembly.Any;
 
         if(context.typepath() != null) {
             fieldType = CurrentProject.Assembly.getTypeInPath(context.typepath().getText());
         }
+        
+        if(CurrentProject.Preferences.DisableAny && fieldType == CurrentProject.Assembly.Any) {
+        	throw new NMemberDeclareException(fieldName, "Untyped variables are forbidden by preferences")
+        }
 
-        NSignature signature = new NSignature(context.member_name().getText(), fieldType, access);
+        NSignature signature = new NSignature(fieldName, fieldType, access);
 
         return new NField(CurrentProject.CurrentContext, signature);
+    }
+    
+    public static NType getReturnType(StatementContext statement) {
+    	statement
     }
 
     /**
