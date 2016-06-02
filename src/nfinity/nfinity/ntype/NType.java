@@ -88,6 +88,11 @@ public class NType {
         return false;
     }
 
+    //TODO: Implement this as highest branch split finder
+    public static NType getHighestShared(NType first, NType second) {
+        return NType.Null;
+    }
+
     /**
      * Creates the formatted typepath for this type
      * @return

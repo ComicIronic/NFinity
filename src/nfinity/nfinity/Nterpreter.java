@@ -1,7 +1,6 @@
 package nfinity.nfinity;
 
-import nfinity.nfinity.exceptions.NTypeCannotExtendException;
-import nfinity.nfinity.exceptions.NTypeNotFoundException;
+import nfinity.nfinity.exceptions.*;
 import nfinity.nfinity.grammar.NFinityLexer;
 import nfinity.nfinity.grammar.NFinityParse;
 import nfinity.nfinity.nassembly.NAssembly;
@@ -156,7 +155,7 @@ public class Nterpreter {
         NType currentType = CurrentProject.CurrentContext.getType();
 
         if(typepath != "") {
-            NType pathedType = CurrentProject.Assembly.World;
+            NType pathedType;
             try {
                 if (CurrentProject.CurrentContext == CurrentProject.Assembly.WorldContext) {
                     pathedType = CurrentProject.Assembly.getTypeOrCreateInPath(typepath);
@@ -194,6 +193,8 @@ public class Nterpreter {
             } catch (NTypeNotFoundException e) {
                 error(Nterpreter.FilePath, Nterpreter.LineNumber, "Could not find the type " + e.FailedType);
                 return;
+            } catch (NArgDeclareException e) {
+                error(Nterpreter.FilePath, Nterpreter.LineNumber, "Could not create arguments: " + e.Message);
             }
         }
     }
@@ -209,6 +210,13 @@ public class Nterpreter {
         	
             try {
                 produced = processVar(argument.argument_var_declare().optional_var_declare());
+
+                if(argument.statement() != null) {
+                    if(produced.Signature.ReturnType.acceptsCast(getStatementType(argument.statement()))) {
+
+                    }
+                }
+
             } catch (NTypeNotFoundException e) {
                 error(Nterpreter.FilePath, Nterpreter.LineNumber, "Could not find type " + e.FailedType);
                 failure = true;
@@ -239,7 +247,7 @@ public class Nterpreter {
         }
         
         if(CurrentProject.Preferences.DisableAny && fieldType == CurrentProject.Assembly.Any) {
-        	throw new NMemberDeclareException(fieldName, "Untyped variables are forbidden by preferences")
+        	throw new NMemberDeclareException(fieldName, "Untyped variables are forbidden by preferences");
         }
 
         NSignature signature = new NSignature(fieldName, fieldType, access);
@@ -247,8 +255,47 @@ public class Nterpreter {
         return new NField(CurrentProject.CurrentContext, signature);
     }
     
-    public static NType getReturnType(StatementContext statement) {
-    	statement
+    public static NType getReturnType(NFinityParse.StatementContext statement) throws BadNTypeException {
+        return getReturnType(statement.trinary_statement());
+    }
+
+    public static NType getReturnType(NFinityParse.Trinary_statementContext trinary) throws BadNTypeException {
+        if(trinary.statement() != null && trinary.statement().size() > 0) {
+            NType ifType = getReturnType(trinary.statement(0));
+            NType elseType = getReturnType(trinary.statement(1));
+
+            NType shared = NType.getHighestShared(ifType, elseType);
+
+            if(shared == CurrentProject.Assembly.Any) {
+                if (CurrentProject.Preferences.DisableAny) {
+                    throw new BadNTypeException("Untyped variables are forbidden by preferences");
+                }
+            }
+            return shared;
+        } else {
+            return getReturnType(trinary.or_statement());
+        }
+    }
+
+    public static NType getReturnType(NFinityParse.Or_statementContext or_statement) throws BadNTypeException {
+        if(or_statement.and_statement().size() > 1) {
+            if(CurrentProject.Preferences.RequireBoolean) {
+                for(NFinityParse.And_statementContext and_statement : or_statement.and_statement()) {
+                    if(getReturnType(and_statement) != CurrentProject.Assembly.Bool) {
+                        throw new BadNTypeException("All conditional statements must be boolean");
+                    }
+                }
+            }
+
+            return CurrentProject.Assembly.Bool;
+        } else {
+            //Otherwise, our return type is just the sub-statement return type
+            return getReturnType(or_statement.and_statement(0));
+        }
+    }
+
+    public static NType getReturnType(NFinityParse.And_statementContext and_statement) throws BadNTypeException {
+        //TODO: find a way to implement the or-behaviour for this in a well-designed way
     }
 
     /**

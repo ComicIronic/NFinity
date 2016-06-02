@@ -10,4 +10,6 @@ public class Preferences {
     public boolean EnforceNullable = false;
 
     public boolean DisableAny = false;
+
+    public boolean RequireBoolean = false;
 }
