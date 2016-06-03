@@ -28,6 +28,8 @@ public class NAssembly {
     public NType String;
 
     public NType Bool;
+
+    public NType Typepath;
     
     public NType Any;
 
@@ -69,6 +71,8 @@ public class NAssembly {
         String = new NString(Null, this);
 
         Bool = new NBool(Null, this);
+
+        Typepath = new NTypepath(Null, this);
         
         Any = new Any(Null, this);
 
@@ -86,7 +90,7 @@ public class NAssembly {
 
         Mob = new Mob(Movable, this);
     	
-        Types.addAll(Arrays.asList(Datum, Num, String, Bool, NList, Atom, Movable, Area, Turf, Obj, Mob));
+        Types.addAll(Arrays.asList(Datum, Num, String, Bool, Typepath, NList, Atom, Movable, Area, Turf, Obj, Mob));
     }
 
     /**
