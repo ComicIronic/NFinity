@@ -206,23 +206,33 @@ public class Nterpreter {
         
         for(NFinityParse.Argument_declareContext argument : arguments.argument_declare()) {
 
-        	NField produced = null;
+
         	
             try {
+                NField produced = null;
+
                 produced = processVar(argument.argument_var_declare().optional_var_declare());
 
                 if(argument.statement() != null) {
-                    if(produced.Signature.ReturnType.acceptsCast(getStatementType(argument.statement()))) {
-
+                    NType defaultType = getReturnType(argument.statement());
+                    if(produced.Signature.ReturnType.acceptsCast(defaultType)) {
+                        args.add(new NArg(produced.Signature.ReturnType, true));
+                    } else {
+                        error(Nterpreter.FilePath, Nterpreter.LineNumber, produced.Signature.Name + " can't have a default value of type " + defaultType.typepath());
+                        failure = true;
                     }
+                } else {
+                    args.add(new NArg(produced.Signature.ReturnType, false));
                 }
-
             } catch (NTypeNotFoundException e) {
                 error(Nterpreter.FilePath, Nterpreter.LineNumber, "Could not find type " + e.FailedType);
                 failure = true;
             } catch (NMemberDeclareException e) {
             	error(Nterpreter.FilePath, Nterpreter.LineNumber, "Could not create variable " + e.MemberName + ": " + e.Message);
             	failure = true;
+            } catch (BadNTypeException e) {
+                error(Nterpreter.FilePath, Nterpreter.LineNumber, e.Message);
+                failure = true;
             }
         }
         
@@ -295,8 +305,140 @@ public class Nterpreter {
     }
 
     public static NType getReturnType(NFinityParse.And_statementContext and_statement) throws BadNTypeException {
-        //TODO: find a way to implement the or-behaviour for this in a well-designed way
+        if(and_statement.compare_statement().size() > 1) {
+            if(CurrentProject.Preferences.RequireBoolean) {
+                for(NFinityParse.Compare_statementContext compare_statement : and_statement.compare_statement()) {
+                    if(getReturnType(compare_statement) != CurrentProject.Assembly.Bool) {
+                        throw new BadNTypeException("All conditional statements must be boolean");
+                    }
+                }
+            }
+
+            return CurrentProject.Assembly.Bool;
+        } else {
+            //Otherwise, our return type is just the sub-statement return type
+            return getReturnType(and_statement.compare_statement(0));
+        }
     }
+
+    public static NType getReturnType(NFinityParse.Compare_statementContext compare_statement) throws BadNTypeException {
+        if(compare_statement.low_statement().size() > 1) {
+            if (CurrentProject.Preferences.RequireBoolean) {
+                for (NFinityParse.Low_statementContext low_statement : compare_statement.low_statement()) {
+                    if (getReturnType(low_statement) != CurrentProject.Assembly.Bool) {
+                        throw new BadNTypeException("All conditional statements must be boolean");
+                    }
+                }
+            }
+
+            return CurrentProject.Assembly.Bool;
+        } else {
+            return getReturnType(compare_statement.low_statement(0));
+        }
+    }
+
+    public static NType getReturnType(NFinityParse.Low_statementContext low_statement) throws BadNTypeException {
+        if(low_statement.med_statement().size() > 1) {
+            if (CurrentProject.Preferences.RequireBoolean) {
+                for (NFinityParse.Med_statementContext med_statement : low_statement.med_statement()) {
+                    if (getReturnType(med_statement) != CurrentProject.Assembly.Bool) {
+                        throw new BadNTypeException("All conditional statements must be boolean");
+                    }
+                }
+            }
+
+            return CurrentProject.Assembly.Bool;
+        } else {
+            return getReturnType(low_statement.med_statement(0));
+        }
+    }
+
+    public static NType getReturnType(NFinityParse.Med_statementContext med_statement) throws BadNTypeException {
+        if(med_statement.high_statement().size() > 1) {
+            if (CurrentProject.Preferences.RequireBoolean) {
+                for (NFinityParse.High_statementContext high_statement : med_statement.high_statement()) {
+                    if (getReturnType(high_statement) != CurrentProject.Assembly.Bool) {
+                        throw new BadNTypeException("All conditional statements must be boolean");
+                    }
+                }
+            }
+
+            return CurrentProject.Assembly.Bool;
+        } else {
+            return getReturnType(med_statement.high_statement(0));
+        }
+    }
+
+    public static NType getReturnType(NFinityParse.High_statementContext high_statement) throws BadNTypeException {
+        if(high_statement.unary_statement().size() > 1) {
+            if (CurrentProject.Preferences.RequireBoolean) {
+                for (NFinityParse.Unary_statementContext unary_statement : high_statement.unary_statement()) {
+                    if (getReturnType(unary_statement) != CurrentProject.Assembly.Bool) {
+                        throw new BadNTypeException("All conditional statements must be boolean");
+                    }
+                }
+            }
+
+            return CurrentProject.Assembly.Bool;
+        } else {
+            return getReturnType(high_statement.unary_statement(0));
+        }
+    }
+
+    public static NType getReturnType(NFinityParse.Unary_statementContext unary_statement) throws BadNTypeException {
+        if(unary_statement.UNARY_POST() != null) {
+
+        } else if(unary_statement.UNARY_PRE() != null) {
+        } else {
+            return getReturnType(unary_statement.single_statement());
+        }
+    }
+
+    public static NType getReturnType(NFinityParse.Single_statementContext single_statement) throws BadNTypeException {
+        NFinityParse.Bare_valueContext bare_value = single_statement.bare_value();
+
+        if(bare_value != null) {
+            if(bare_value.NULL() != null) {
+                return NType.Null;
+            }
+
+            if(bare_value.STRING() != null) {
+                return CurrentProject.Assembly.String;
+            }
+
+            if(bare_value.NUM() != null || bare_value.BINARY() != null) {
+                return CurrentProject.Assembly.Num;
+            }
+
+            if(bare_value.typepath() != null) {
+                return CurrentProject.Assembly.Typepath;
+            }
+        }
+
+        if(single_statement.NEW() != null) {
+            NFinityParse.Single_statementContext type_statement = single_statement.single_statement();
+
+            NType statementType = getReturnType(type_statement);
+
+            if(statementType == CurrentProject.Assembly.Typepath) {
+                try {
+                    return CurrentProject.Assembly.getTypeInPath(type_statement.bare_value().typepath().getText());
+                } catch (NTypeNotFoundException e) {
+                    throw new BadNTypeException("Could not initialise the type " + type_statement.bare_value().typepath().getText());
+                }
+            } else {
+                //A new thing is just of type thing
+                return statementType;
+            }
+        }
+
+        NFinityParse.StatementContext inner_statement = single_statement.statement();
+
+        if(inner_statement != null) {
+            return getReturnType(inner_statement);
+        }
+    }
+
 
     /**
      * Add warning message to the assembler storage to be printed later - warning messages should not prevent compilation
