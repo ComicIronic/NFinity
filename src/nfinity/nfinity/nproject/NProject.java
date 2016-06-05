@@ -3,6 +3,7 @@ package nfinity.nfinity.nproject;
 import nfinity.nfinity.Nterpreter;
 import nfinity.nfinity.nassembly.NAssembly;
 import nfinity.nfinity.ncontext.NContext;
+import nfinity.nfinity.ncontext.NContextDiver;
 import nfinity.nfinity.preferences.Preferences;
 
 import java.nio.file.Path;
@@ -25,7 +26,7 @@ public class NProject {
 
     public NAssembly Assembly;
 
-    public NContext CurrentContext;
+    public NContextDiver ContextDiver = null;
 
     public Preferences Preferences = new Preferences();
 
