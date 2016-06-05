@@ -103,10 +103,8 @@ unary_statement
 
 //The most basic kind of statement
 single_statement
-    //When you get a field
-    : field_access
-    //When you call a proc
-    | method_access
+    //When you get a field or proc
+    : access_path
     //When you type in a string, a number, or a typepath
     | bare_value
     //Then you create something
@@ -199,17 +197,12 @@ field_assignment
 
 //When a var is set using an operator + the assignment e.g. +=
 field_op
-    : field_access ASSIGNER_OP statement
+    : access_path ASSIGNER_OP statement
     ;
 
 //When the existing var is just set
 field_pure
-    : field_access ASSIGNMENT statement
-    ;
-
-//When a proc is called
-method_access
-    : access_path? method_call
+    : access_path ASSIGNMENT statement
     ;
 
 //Where the proc call actually happens
@@ -260,14 +253,9 @@ scope_modifier
 	| CONST
 	;
 
-// When you access a var by doing dot.path.to.var
-field_access
-    : access_path? member_name
-    ;
-
 // A dot path for access
 access_path
-    : access_start ACCESS (access_part ACCESS)*
+    : (access_start ACCESS)? (access_part ACCESS)* access_part
     ;
 
 // The possible names for types, procs, vars, etc
