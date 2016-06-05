@@ -1,5 +1,6 @@
 package nfinity.nfinity.ncontext.contexts;
 
+import nfinity.nfinity.exceptions.NTypeCannotExtendException;
 import nfinity.nfinity.nassembly.NAssembly;
 import nfinity.nfinity.ncontext.NContext;
 import nfinity.nfinity.nmember.*;
@@ -38,5 +39,9 @@ public class WorldContext extends NContext {
 
     public void addMethod(NMethod method) {
         getType().addMethod(method);
+    }
+
+    public NType createType(String typepath) throws NTypeCannotExtendException {
+        return Assembly.getTypeOrCreateInPath(typepath);
     }
 }

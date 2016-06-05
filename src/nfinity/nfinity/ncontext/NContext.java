@@ -1,5 +1,6 @@
 package nfinity.nfinity.ncontext;
 
+import nfinity.nfinity.exceptions.NTypeCannotExtendException;
 import nfinity.nfinity.nmember.*;
 import nfinity.nfinity.nassembly.NAssembly;
 import nfinity.nfinity.ntype.NType;
@@ -27,4 +28,6 @@ public abstract class NContext {
     public NContext(NAssembly assembly) {
         Assembly = assembly;
     }
+
+    public abstract NType createType(String typepath) throws NTypeCannotExtendException;
 }

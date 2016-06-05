@@ -1,5 +1,6 @@
 package nfinity.nfinity.ncontext.contexts;
 
+import nfinity.nfinity.exceptions.NTypeCannotExtendException;
 import nfinity.nfinity.nassembly.NAssembly;
 import nfinity.nfinity.ncontext.NAccess;
 import nfinity.nfinity.ncontext.NContext;
@@ -34,10 +35,10 @@ public class TypeContext extends NContext {
                 return true;
             }
             case Protected: {
-                return Type.isChildOf(member.TypeOwner);
+                return Type.isChildOf(member.Owner.getType());
             }
             case Private: {
-                return Type == member.TypeOwner;
+                return Type == member.Owner.getType();
             }
             default: {
                 return false;
@@ -45,7 +46,6 @@ public class TypeContext extends NContext {
         }
     }
 
-    @Override
     public NType getType() {
         return Type;
     }
@@ -56,5 +56,9 @@ public class TypeContext extends NContext {
 
     public void addMethod(NMethod method) {
         getType().addMethod(method);
+    }
+
+    public NType createType(String typepath) throws NTypeCannotExtendException {
+        return Assembly.getChildTypeOrCreateInPath(Type, typepath);
     }
 }

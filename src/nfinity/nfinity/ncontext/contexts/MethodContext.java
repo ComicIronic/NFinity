@@ -1,6 +1,7 @@
 package nfinity.nfinity.ncontext.contexts;
 
 import nfinity.nfinity.Nterpreter;
+import nfinity.nfinity.exceptions.NTypeCannotExtendException;
 import nfinity.nfinity.ncontext.NContext;
 import nfinity.nfinity.nmember.NField;
 import nfinity.nfinity.nmember.NMember;
@@ -28,13 +29,13 @@ public class MethodContext extends NContext {
     }
 
     public MethodContext(NMethod method) {
-    	Assembly = method.TypeOwner.Assembly;
+    	Assembly = method.Owner.getType().Assembly;
     	MethodOwner = method;
     }
 
     @Override
     public NType getType() {
-        return MethodOwner.TypeOwner;
+        return MethodOwner.Owner.getType();
     }
 
     public void addField(NField field) {
@@ -54,10 +55,10 @@ public class MethodContext extends NContext {
                 return true;
             }
             case Protected: {
-                return MethodOwner.TypeOwner.isChildOf(member.TypeOwner);
+                return MethodOwner.Owner.getType().isChildOf(member.Owner.getType());
             }
             case Private: {
-                return MethodOwner.TypeOwner == member.TypeOwner;
+                return MethodOwner.Owner.getType() == member.Owner.getType();
             }
             default: {
                 return false;
@@ -70,14 +71,18 @@ public class MethodContext extends NContext {
     }
 
     public List<NMethod> Methods() {
-        return MethodOwner.TypeOwner.TypeContext.Methods();
+        return MethodOwner.Owner.getType().TypeContext.Methods();
     }
 
     public List<NField> Fields() {
-        return ListUtils.union(Fields, MethodOwner.TypeOwner.TypeContext.Fields());
+        return ListUtils.union(Fields, MethodOwner.Owner.getType().TypeContext.Fields());
     }
 
     public MethodContext dive() {
         return new SubContext(this);
+    }
+
+    public NType createType(String typepath) throws NTypeCannotExtendException {
+        throw new NTypeCannotExtendException("Cannot extend a type inside code.");
     }
 }
