@@ -3,6 +3,8 @@ package nfinity.nfinity.ncontext;
 import nfinity.nfinity.exceptions.NTypeCannotExtendException;
 import nfinity.nfinity.nmember.*;
 import nfinity.nfinity.nassembly.NAssembly;
+import nfinity.nfinity.nsignature.NSignature;
+import nfinity.nfinity.nsignature.request.NSigRequest;
 import nfinity.nfinity.ntype.NType;
 
 import java.util.List;
@@ -30,4 +32,18 @@ public abstract class NContext {
     }
 
     public abstract NType createType(String typepath) throws NTypeCannotExtendException;
+
+    public NMember addMember(NSignature signature) {
+        if(signature.Args != null) {
+            NMethod method = new NMethod(this, signature);
+            Methods().add(method);
+            return method;
+        } else {
+            NField field = new NField(this, signature);
+            Fields().add(field);
+            return field;
+        }
+    }
+
+    public abstract NMember resolveMember(NSigRequest request);
 }

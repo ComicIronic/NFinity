@@ -5,12 +5,15 @@ import nfinity.nfinity.grammar.NFinityLexer;
 import nfinity.nfinity.grammar.NFinityParse;
 import nfinity.nfinity.nassembly.NAssembly;
 import nfinity.nfinity.ncontext.NAccess;
+import nfinity.nfinity.ncontext.NContextDiver;
 import nfinity.nfinity.nmember.NField;
 import nfinity.nfinity.nmember.NMethod;
 import nfinity.nfinity.nproject.NProject;
 import nfinity.nfinity.ncontext.NContext;
 import nfinity.nfinity.nsignature.NArg;
 import nfinity.nfinity.nsignature.NSignature;
+import nfinity.nfinity.nsignature.request.NArgRequest;
+import nfinity.nfinity.nsignature.request.NSigRequest;
 import nfinity.nfinity.ntype.NType;
 import nfinity.nfinity.util.ListUtils;
 import org.antlr.v4.runtime.ANTLRFileStream;
@@ -83,6 +86,8 @@ public class Nterpreter {
     
     public static void assemble(NProject CurrentProject) {
     	CurrentProject.Assembly.reset();
+
+        CurrentProject.ContextDiver = new NContextDiver(CurrentProject.Assembly.WorldContext);
     	
     	for(Path filePath : CurrentProject.Files) {
             processFile(filePath);
@@ -147,21 +152,16 @@ public class Nterpreter {
         String typepath = "";
 
         if(typeContext.type_declare() != null) {
+            //There are multiple because we can be abstract
           for(NFinityParse.TypepathContext context : typeContext.type_declare().typepath()) {
               typepath += (typepath.length() > 0 ? "/" : "") + context.getText();
           }
         }
 
-        NType currentType = CurrentProject.CurrentContext.getType();
-
         if(typepath != "") {
             NType pathedType;
             try {
-                if (CurrentProject.CurrentContext == CurrentProject.Assembly.WorldContext) {
-                    pathedType = CurrentProject.Assembly.getTypeOrCreateInPath(typepath);
-                } else {
-                    pathedType = CurrentProject.Assembly.getChildTypeOrCreateInPath(CurrentProject.CurrentContext.getType(), typepath);
-                }
+                pathedType = CurrentProject.ContextDiver.currentContext().createType(typepath);
             } catch (NTypeCannotExtendException e) {
                 error(Nterpreter.FilePath, Nterpreter.LineNumber, "Attempted to extend an inextendable type: " + e.FinalType);
                 return;
@@ -171,30 +171,39 @@ public class Nterpreter {
                 pathedType.Abstract = true;
             }
 
-            CurrentProject.CurrentContext = pathedType.TypeContext;
-        }
-
-        NFinityParse.Method_declareContext methodDeclareContext = typeContext.method_declare();
-
-        if(methodDeclareContext != null) {
-            NAccess access = NAccess.Default;
-            if(methodDeclareContext.access_modifier() != null) {
-                access = NAccess.valueOf(methodDeclareContext.access_modifier().getText());
+            //We dive into the type we've created
+            CurrentProject.ContextDiver.diveInto(pathedType.TypeContext);
+            //We process everything under it
+            for(NFinityParse.Type_blockContext sub_block : typeContext.type_block()) {
+                processType(sub_block);
             }
+            //And then we pop back up
+            CurrentProject.ContextDiver.riseUp();
+            return;
 
-            try {
-                NSignature signature = new NSignature(
-                        methodDeclareContext.member_name().getText(),
-                        CurrentProject.Assembly.getTypeInPath(methodDeclareContext.typepath().getText()),
-                        access,
-                        processArgs(methodDeclareContext.argument_declares()));
+        } else {
+            NFinityParse.Method_declareContext methodDeclareContext = typeContext.method_declare();
 
-                NMethod method = new NMethod(CurrentProject.CurrentContext, signature);
-            } catch (NTypeNotFoundException e) {
-                error(Nterpreter.FilePath, Nterpreter.LineNumber, "Could not find the type " + e.FailedType);
-                return;
-            } catch (NArgDeclareException e) {
-                error(Nterpreter.FilePath, Nterpreter.LineNumber, "Could not create arguments: " + e.Message);
+            if (methodDeclareContext != null) {
+                NAccess access = NAccess.Default;
+                if (methodDeclareContext.access_modifier() != null) {
+                    access = NAccess.valueOf(methodDeclareContext.access_modifier().getText());
+                }
+
+                try {
+                    NSignature signature = new NSignature(
+                            methodDeclareContext.member_name().getText(),
+                            CurrentProject.Assembly.getTypeInPath(methodDeclareContext.typepath().getText()),
+                            access,
+                            processArgs(methodDeclareContext.argument_declares()));
+
+                   CurrentProject.ContextDiver.currentContext().addMember(signature);
+                } catch (NTypeNotFoundException e) {
+                    error(Nterpreter.FilePath, Nterpreter.LineNumber, "Could not find the type " + e.FailedType);
+                    return;
+                } catch (NArgDeclareException e) {
+                    error(Nterpreter.FilePath, Nterpreter.LineNumber, "Could not create arguments: " + e.Message);
+                }
             }
         }
     }
@@ -262,7 +271,7 @@ public class Nterpreter {
 
         NSignature signature = new NSignature(fieldName, fieldType, access);
 
-        return new NField(CurrentProject.CurrentContext, signature);
+        return new NField(CurrentProject.ContextDiver.currentContext(), signature);
     }
     
     public static NType getReturnType(NFinityParse.StatementContext statement) throws BadNTypeException {
@@ -398,21 +407,7 @@ public class Nterpreter {
         NFinityParse.Bare_valueContext bare_value = single_statement.bare_value();
 
         if(bare_value != null) {
-            if(bare_value.NULL() != null) {
-                return NType.Null;
-            }
-
-            if(bare_value.STRING() != null) {
-                return CurrentProject.Assembly.String;
-            }
-
-            if(bare_value.NUM() != null || bare_value.BINARY() != null) {
-                return CurrentProject.Assembly.Num;
-            }
-
-            if(bare_value.typepath() != null) {
-                return CurrentProject.Assembly.Typepath;
-            }
+            return getReturnType(bare_value);
         }
 
         if(single_statement.NEW() != null) {
@@ -421,10 +416,14 @@ public class Nterpreter {
             NType statementType = getReturnType(type_statement);
 
             if(statementType == CurrentProject.Assembly.Typepath) {
-                try {
-                    return CurrentProject.Assembly.getTypeInPath(type_statement.bare_value().typepath().getText());
-                } catch (NTypeNotFoundException e) {
-                    throw new BadNTypeException("Could not initialise the type " + type_statement.bare_value().typepath().getText());
+                if(type_statement.bare_value() != null) {
+                    try {
+                        return CurrentProject.Assembly.getTypeInPath(type_statement.bare_value().typepath().getText());
+                    } catch (NTypeNotFoundException e) {
+                        throw new BadNTypeException("Could not initialise the type " + type_statement.bare_value().typepath().getText());
+                    }
+                } else {
+                    return CurrentProject.Assembly.Any;
                 }
             } else {
                 //A new thing is just of type thing
@@ -437,6 +436,86 @@ public class Nterpreter {
         if(inner_statement != null) {
             return getReturnType(inner_statement);
         }
+    }
+
+    public static NType getReturnType(NFinityParse.Bare_valueContext bare_value) throws BadNTypeException {
+        if(bare_value.NULL() != null) {
+            return NType.Null;
+        }
+
+        if(bare_value.STRING() != null) {
+            return CurrentProject.Assembly.String;
+        }
+
+        if(bare_value.NUM() != null || bare_value.BINARY() != null) {
+            return CurrentProject.Assembly.Num;
+        }
+
+        if(bare_value.typepath() != null) {
+            return CurrentProject.Assembly.Typepath;
+        }
+
+        throw new BadNTypeException("Could not find a type corresponding to bare value " + bare_value.getText());
+    }
+
+    public static NType resolveAccessType(NFinityParse.Access_pathContext access) throws BadNTypeException {
+        NContextDiver pathDiver;
+
+        NFinityParse.Access_startContext access_start = access.access_start();
+
+        if(access_start != null) {
+            NFinityParse.Bare_valueContext bare_value = access_start.bare_value();
+            if(bare_value != null) {
+                pathDiver = new NContextDiver(getReturnType(bare_value).TypeContext);
+            } else if (access_start.SRC() != null) {
+                //SRC is type-based, so doing src.something specifies the scope of the type
+                //This scope is found by the current content's getType() typecontext
+                pathDiver = new NContextDiver(CurrentProject.ContextDiver.currentContext().getType().TypeContext);
+            } else {
+                pathDiver = new NContextDiver(getReturnType(access_start.statement()).TypeContext);
+            }
+
+        } else {
+            pathDiver = new NContextDiver(CurrentProject.ContextDiver.currentContext());
+        }
+
+        NType currentType = pathDiver.currentContext().getType();
+
+        for(NFinityParse.Access_partContext access_part : access.access_part()) {
+            NFinityParse.Member_nameContext member_name = access_part.member_name();
+
+            NSigRequest sigRequest;
+
+            if(member_name != null) {
+                sigRequest = new NSigRequest(member_name.getText());
+            } else {
+                NFinityParse.Method_callContext method_call = access_part.method_call();
+
+                //TODO: Allow the empty argument i.e. ,,
+                List<NArgRequest> args = new ArrayList<NArgRequest>();
+
+                for(NFinityParse.ArgumentContext argument : method_call.arguments().argument()) {
+                    NFinityParse.Member_nameContext arg_name = argument.member_name();
+
+                    NArgRequest generatedArg;
+
+                    if(arg_name != null) {
+                        generatedArg = new NArgRequest(arg_name.getText(), getReturnType(argument.statement()));
+                    } else {
+                        generatedArg = new NArgRequest(getReturnType(argument.statement()));
+                    }
+
+                    args.add(generatedArg);
+                }
+
+                sigRequest = new NSigRequest(method_call.member_name().getText(), args.toArray(new NArgRequest[args.size()]));
+            }
+
+            currentType = pathDiver.currentContext().resolveMember(sigRequest).Signature.ReturnType;
+            pathDiver.diveInto(currentType.TypeContext);
+        }
+
+        return currentType;
     }
 
 

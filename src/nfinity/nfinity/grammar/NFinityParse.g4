@@ -221,7 +221,6 @@ arguments
 argument
     : statement
     | member_name ASSIGNMENT statement
-    | bare_value ASSIGNMENT statement
     ;
 
 //Generic restriction block
@@ -265,8 +264,7 @@ member_name
 
 // How a dotpath can start
 access_start
-    : access_part
-    | '(' statement ')'
+    : '(' statement ')'
     | bare_value
     | SRC
     ;
