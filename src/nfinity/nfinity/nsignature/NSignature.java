@@ -1,7 +1,10 @@
 package nfinity.nfinity.nsignature;
 
 import nfinity.nfinity.ncontext.NAccess;
+import nfinity.nfinity.nsignature.request.NArgRequest;
+import nfinity.nfinity.nsignature.request.NSigRequest;
 import nfinity.nfinity.ntype.NType;
+import nfinity.nfinity.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,7 +46,7 @@ public class NSignature {
         }
     }
 
-    public NSignature(String name, NType returnType, NAccess access, NType ... types) {
+/*    public NSignature(String name, NType returnType, NAccess access, NType ... types) {
         Name = name;
 
         ReturnType = returnType;
@@ -57,7 +60,7 @@ public class NSignature {
                 Args.add(new NArg(type, false));
             }
         }
-    }
+    }*/
 
     public int nonOptionalSize() {
         int i = 0;
@@ -80,15 +83,15 @@ public class NSignature {
         }
 
         for(NArg arg : degenerized.Args) {
-            if(arg.Type == generic) {
-                arg.Type = replacement;
+            if(arg.ArgField.Signature.ReturnType == generic) {
+                arg.ArgField.Signature.ReturnType = replacement;
             }
         }
 
         return degenerized;
     }
 
-    public boolean accepts(NSignature other) {
+/*    public boolean accepts(NSignature other) {
         if(ReturnType.acceptsCast(other.ReturnType)) {
             //Can't have a non-optional arg
             if(other.Args.size() > this.nonOptionalSize()) {
@@ -98,6 +101,22 @@ public class NSignature {
             for(int i = 1; i < other.Args.size(); i++) {
                 if(!Args.get(i).accepts(other.Args.get(i).Type)) {
                     return false;
+                }
+            }
+
+            return true;
+        } else {
+            return false;
+        }
+    }*/
+
+    public boolean acceptsRequest(NSigRequest request) {
+        if(Name == request.MemberName) {
+            for(NArgRequest argRequest : request.Args) {
+                if(!StringUtils.isNullOrBlank(argRequest.Name)) {
+
+                } else {
+
                 }
             }
 
