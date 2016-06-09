@@ -1,5 +1,7 @@
 package nfinity.nfinity.ntype;
 
+import nfinity.nfinity.exceptions.NTypeCannotExtendException;
+import nfinity.nfinity.exceptions.NTypeNotFoundException;
 import nfinity.nfinity.ntype.core.Null;
 import nfinity.nfinity.nassembly.NAssembly;
 import nfinity.nfinity.ncontext.NContext;
@@ -91,6 +93,69 @@ public class NType {
     //TODO: Implement this as highest branch split finder
     public static NType getHighestShared(NType first, NType second) {
         return NType.Null;
+    }
+
+    public NType getChildType(String typepath) throws NTypeNotFoundException {
+        int first_separator = typepath.indexOf("/");
+
+        String baseName = typepath;
+
+        NType baseType = null;
+
+        //If true, we skip searching steps because we can't find children of a new type
+        boolean created = false;
+
+        if(first_separator != -1) {
+            baseName = typepath.substring(0, first_separator);
+        }
+
+        for(NType child : children()) {
+            if(child.TypeName == baseName) {
+                return child.getChildType(typepath.substring(first_separator + 1));
+            }
+        }
+
+        throw new NTypeNotFoundException(typepath() + "/" + baseName);
+    }
+
+    public NType getOrCreateChildType(String typepath) throws NTypeCannotExtendException {
+        try {
+            return getChildType(typepath);
+        }
+        catch (NTypeNotFoundException e) {
+            //This is technically handled below, but let's save legwork here
+            if(Final) {
+                throw new NTypeCannotExtendException(typepath());
+            }
+
+            int first_separator = typepath.indexOf("/");
+
+            String baseName = typepath;
+
+            NType baseType = null;
+
+            if(first_separator != -1) {
+                baseName = typepath.substring(0, first_separator);
+            }
+
+            for (NType type : children()) {
+                if (type.TypeName == baseName) {
+                    baseType = type;
+                }
+            }
+
+            if(baseType == null) {
+                baseType = new NType(this, Assembly);
+                baseType.TypeName = baseName;
+                Assembly.Types.add(baseType);
+            }
+
+            return baseType.getOrCreateChildType(typepath.substring(first_separator + 1));
+        }
+    }
+
+    public List<NType> children() {
+        return Assembly.childrenOf(this);
     }
 
     /**
