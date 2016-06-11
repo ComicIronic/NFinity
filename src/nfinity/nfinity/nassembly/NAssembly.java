@@ -8,6 +8,7 @@ import nfinity.nfinity.ntype.NType;
 import nfinity.nfinity.ntype.core.*;
 import nfinity.nfinity.ntype.generic.list.NList;
 import nfinity.nfinity.ntype.primitive.*;
+import nfinity.nfinity.util.ListUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -91,6 +92,30 @@ public class NAssembly {
         Mob = new Mob(Movable, this);
     	
         Types.addAll(Arrays.asList(Datum, Num, String, Bool, Typepath, NList, Atom, Movable, Area, Turf, Obj, Mob));
+    }
+    
+    public NType getDeepestShared(NType first, NType second) {
+        List<NType> firstParentage = first.parentage();
+
+        List<NType> secondParentage = second.parentage();
+
+        //Since the deeper type will always have a longer list, we select by list size
+        List<NType> larger = firstParentage.size() >= secondParentage.size() ?
+                            firstParentage :
+                            secondParentage;
+
+        List<NType> smaller = larger == firstParentage ?
+                            secondParentage :
+                            firstParentage;
+
+        //The first shared type will appear in both lists
+        for(NType type : larger) {
+            if(smaller.contains(type)) {
+                return type;
+            }
+        }
+
+        return Any;
     }
 
     /**

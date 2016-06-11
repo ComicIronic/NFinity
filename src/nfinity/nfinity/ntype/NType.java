@@ -8,6 +8,7 @@ import nfinity.nfinity.ncontext.NContext;
 import nfinity.nfinity.ncontext.contexts.TypeContext;
 import nfinity.nfinity.nmember.NField;
 import nfinity.nfinity.nmember.NMethod;
+import nfinity.nfinity.util.ListUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,11 +91,6 @@ public class NType {
         return false;
     }
 
-    //TODO: Implement this as highest branch split finder
-    public static NType getHighestShared(NType first, NType second) {
-        return NType.Null;
-    }
-
     public NType getChildType(String typepath) throws NTypeNotFoundException {
         int first_separator = typepath.indexOf("/");
 
@@ -159,19 +155,23 @@ public class NType {
     }
 
     /**
+     * Gets the number of types deep this type is - 1 is base
+     * @return
+     */
+    public int depth() {
+        return parentage().size();
+    }
+
+    /**
      * Creates the formatted typepath for this type
      * @return
      */
     public String typepath() {
         Stack<String> typenames = new Stack<String>();
 
-        typenames.push(this.TypeName);
 
-        NType parent = ParentType;
-
-        while(parent != NType.Null) {
-            typenames.push(parent.TypeName);
-            parent = parent.ParentType;
+        for(NType type : this.parentage()) {
+            typenames.push(type.TypeName);
         }
 
         StringBuilder pathBuilder = new StringBuilder();
@@ -182,5 +182,21 @@ public class NType {
         }
 
         return pathBuilder.toString();
+    }
+
+    /**
+     * Returns the list of parent types leading to this type - this type is included
+     * @return
+     */
+    public List<NType> parentage() {
+        List<NType> parentType = new ArrayList<NType>();
+        NType parent = this;
+
+        while(parent != NType.Null) {
+            parentType.add(parent);
+            parent = parent.ParentType;
+        }
+
+        return parentType;
     }
 }
