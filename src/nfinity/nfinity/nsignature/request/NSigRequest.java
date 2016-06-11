@@ -14,8 +14,15 @@ public class NSigRequest {
 
     public List<NArgRequest> Args = new ArrayList<NArgRequest>();
 
+    public boolean isField() {
+        return _isfield;
+    }
+
+    private boolean _isfield = false;
+
     public NSigRequest(String name) {
         MemberName = name;
+        _isfield = true;
     }
 
     public NSigRequest(String name, NArgRequest ... args) {

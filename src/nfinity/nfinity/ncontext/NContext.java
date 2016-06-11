@@ -1,5 +1,6 @@
 package nfinity.nfinity.ncontext;
 
+import nfinity.nfinity.exceptions.NSigCannotResolveException;
 import nfinity.nfinity.exceptions.NTypeCannotExtendException;
 import nfinity.nfinity.nmember.*;
 import nfinity.nfinity.nassembly.NAssembly;
@@ -45,5 +46,21 @@ public abstract class NContext {
         }
     }
 
-    public abstract NMember resolveMember(NSigRequest request);
+    public NMember resolveMember(NSigRequest request) throws NSigCannotResolveException  {
+        if(request.isField()) {
+            for(NField field : Fields()) {
+                if(field.Signature.acceptsRequest(request)) {
+                    return field;
+                }
+            }
+        } else {
+            for(NMethod method : Methods()) {
+                if(method.Signature.acceptsRequest(request)) {
+                    return method;
+                }
+            }
+        }
+
+        throw new NSigCannotResolveException(request);
+    }
 }
