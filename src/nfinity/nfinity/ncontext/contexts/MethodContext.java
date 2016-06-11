@@ -75,7 +75,7 @@ public class MethodContext extends NContext {
     }
 
     public List<NField> Fields() {
-        return ListUtils.union(Fields, MethodOwner.Owner.getType().TypeContext.Fields());
+        return ListUtils.paired_union(Fields, MethodOwner.Owner.getType().TypeContext.Fields());
     }
 
     public MethodContext dive() {

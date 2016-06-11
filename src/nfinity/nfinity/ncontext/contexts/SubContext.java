@@ -30,7 +30,7 @@ public class SubContext extends MethodContext {
     }
     
     public List<NField> MemberFields() {
-        return ListUtils.union(Fields, ParentContext.MemberFields());
+        return ListUtils.paired_union(Fields, ParentContext.MemberFields());
     }
 
     public List<NMethod> Methods() {
@@ -38,6 +38,6 @@ public class SubContext extends MethodContext {
     }
 
     public List<NField> Fields() {
-        return ListUtils.union(Fields, ParentContext.Fields());
+        return ListUtils.paired_union(Fields, ParentContext.Fields());
     }
 }

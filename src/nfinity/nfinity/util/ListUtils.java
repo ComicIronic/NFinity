@@ -12,13 +12,56 @@ import java.util.Set;
  * @since 22/05/2016 2016
  */
 public class ListUtils {
-    public static <T> List<T> union(List<T> list1, List<T> list2) {
-        Set<T> set = new HashSet<T>();
+    public static <T> List<T> ordered_union(List<T> list1, List<T> list2) {
+        List<T> union = new ArrayList<T>();
 
-        set.addAll(list1);
-        set.addAll(list2);
+        for(int i = 0; i < Math.max(list1.size(), list2.size())) {
+            if(i < list1.size()) {
+                T item = list1.get(i);
 
-        return new ArrayList<T>(set);
+                if(!union.contains(item)) {
+                    union.add(item);
+                }
+            }
+
+            if(i < list2.size()) {
+                T item = list2.get(i);
+
+                if(!union.contains(item)) {
+                    union.add(item);
+                }
+            }
+        }
+
+        return union;
+    }
+
+    public static <T> List<T> paired_union(List<T> list1, List<T> list2) {
+        List<T> union = new ArrayList<T>();
+
+        for(T item : list1) {
+            union.add(item);
+        }
+
+        for(T item : list2) {
+            if(!union.contains(item)) {
+                union.add(item);
+            }
+        }
+
+        return union;
+    }
+
+    public static <T> List<T> intersect(List<T> list1, List<T> list2) {
+        List<T> intersect = new ArrayList<T>();
+
+        for(T item : paired_union(list1, list2)) {
+            if(list1.contains(item) && list2.contains(item)) {
+                intersect.add(item);
+            }
+        }
+
+        return intersect;
     }
 
     public static <T> List<T> copy(List<T> list) {

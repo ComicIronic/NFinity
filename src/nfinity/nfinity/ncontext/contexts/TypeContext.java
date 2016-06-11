@@ -22,11 +22,11 @@ public class TypeContext extends NContext {
     }
 
     public List<NMethod> Methods() {
-        return ListUtils.union(Assembly.WorldContext.Methods(), Type.getMethods());
+        return ListUtils.paired_union(Assembly.WorldContext.Methods(), Type.getMethods());
     }
 
     public List<NField> Fields() {
-        return ListUtils.union(Assembly.WorldContext.Fields(), Type.getFields());
+        return ListUtils.paired_union(Assembly.WorldContext.Fields(), Type.getFields());
     }
 
     public boolean canAccess(NMember member) {
