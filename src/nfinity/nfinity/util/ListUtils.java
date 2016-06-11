@@ -15,7 +15,7 @@ public class ListUtils {
     public static <T> List<T> ordered_union(List<T> list1, List<T> list2) {
         List<T> union = new ArrayList<T>();
 
-        for(int i = 0; i < Math.max(list1.size(), list2.size())) {
+        for(int i = 0; i < Math.max(list1.size(), list2.size()); i++) {
             if(i < list1.size()) {
                 T item = list1.get(i);
 
