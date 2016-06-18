@@ -11,8 +11,8 @@ import nfinity.nfinity.ntype.generic.GenericInstance;
  * @since 22/05/2016 2016
  */
 public class NullableInstance extends GenericInstance {
-    public boolean acceptsCast(NType other) {
-        return other == NType.Null || super.acceptsCast(other);
+    public boolean acceptsTypeAssign(NType other) {
+        return other == NType.Null || super.acceptsTypeAssign(other);
     }
 
     public NullableInstance(NType parent, NType implemented, NAssembly assembly) {

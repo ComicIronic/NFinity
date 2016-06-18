@@ -14,7 +14,7 @@ public class Any extends NType {
         super(parentType, assembly);
     }
 
-    public boolean acceptsCast(NType other) {
+    public boolean acceptsTypeAssign(NType other) {
         return true;
     }
 }

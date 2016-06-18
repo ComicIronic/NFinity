@@ -22,7 +22,7 @@ public class GenericInstance extends NType {
         ImplementedType = implemented;
     }
 
-    public boolean acceptsCast(NType other) {
+    public boolean acceptsTypeAssign(NType other) {
         if(other instanceof GenericInstance) {
             GenericInstance otherInstance = (GenericInstance) other;
 

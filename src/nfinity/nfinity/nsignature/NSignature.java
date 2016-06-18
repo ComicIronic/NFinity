@@ -92,7 +92,7 @@ public class NSignature {
     }
 
 /*    public boolean accepts(NSignature other) {
-        if(ReturnType.acceptsCast(other.ReturnType)) {
+        if(ReturnType.acceptsTypeAssign(other.ReturnType)) {
             //Can't have a non-optional arg
             if(other.Args.size() > this.nonOptionalSize()) {
                 return false;

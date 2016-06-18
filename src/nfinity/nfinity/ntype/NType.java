@@ -74,7 +74,7 @@ public class NType {
         Methods.add(method);
     }
 
-    public boolean acceptsCast(NType other) {
+    public boolean acceptsTypeAssign(NType other) {
         return other.isChildOf(this);
     }
 

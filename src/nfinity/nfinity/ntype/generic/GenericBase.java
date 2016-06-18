@@ -29,7 +29,7 @@ public class GenericBase extends NType {
     }
 
     public boolean canCreateInstance(NType specificType) {
-        return GenericType.acceptsCast(specificType);
+        return GenericType.acceptsTypeAssign(specificType);
     }
 
     @Override

@@ -224,8 +224,8 @@ public class Nterpreter {
 
                 if(argument.statement() != null) {
                     NType defaultType = getReturnType(argument.statement());
-                    if(produced.Signature.ReturnType.acceptsCast(defaultType)) {
-                        args.add(new NArg(produced.Signature.ReturnType, true));
+                    if(produced.Signature.ReturnType.acceptsTypeAssign(defaultType)) {
+                        args.add(new NArg());
                     } else {
                         error(Nterpreter.FilePath, Nterpreter.LineNumber, produced.Signature.Name + " can't have a default value of type " + defaultType.typepath());
                         failure = true;
