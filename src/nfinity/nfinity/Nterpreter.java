@@ -3,13 +3,11 @@ package nfinity.nfinity;
 import nfinity.nfinity.exceptions.*;
 import nfinity.nfinity.grammar.NFinityLexer;
 import nfinity.nfinity.grammar.NFinityParse;
-import nfinity.nfinity.nassembly.NAssembly;
 import nfinity.nfinity.ncontext.NAccess;
 import nfinity.nfinity.ncontext.NContextDiver;
+import nfinity.nfinity.ncontext.contexts.MethodContext;
 import nfinity.nfinity.nmember.NField;
-import nfinity.nfinity.nmember.NMethod;
 import nfinity.nfinity.nproject.NProject;
-import nfinity.nfinity.ncontext.NContext;
 import nfinity.nfinity.nsignature.NArg;
 import nfinity.nfinity.nsignature.NSignature;
 import nfinity.nfinity.nsignature.request.NArgRequest;
@@ -83,7 +81,11 @@ public class Nterpreter {
 
         return convertedPath;
     }
-    
+
+    /**
+     * Builds or rebuilds the given project
+     * @param CurrentProject
+     */
     public static void assemble(NProject CurrentProject) {
     	CurrentProject.Assembly.reset();
 
@@ -94,6 +96,10 @@ public class Nterpreter {
     	}
     }
 
+    /**
+     * Opens the given file and processes it as code
+     * @param filePath
+     */
     private static void processFile(Path filePath) {
         try {
             ANTLRInputStream fileStream = new ANTLRFileStream(filePath.toString());
@@ -117,6 +123,10 @@ public class Nterpreter {
         }
     }
 
+    /**
+     * Processes a line as code
+     * @param context
+     */
     private static void processLine(NFinityParse.LineContext context) {
         NFinityParse.PreprocessContext preprocessor = context.preprocess();
 
@@ -148,6 +158,10 @@ public class Nterpreter {
         return;
     }
 
+    /**
+     * Processes a type block into type information in the assembly
+     * @param typeContext
+     */
     private static void processType(NFinityParse.Type_blockContext typeContext) {
         String typepath = "";
 
@@ -190,6 +204,8 @@ public class Nterpreter {
                     access = NAccess.valueOf(methodDeclareContext.access_modifier().getText());
                 }
 
+
+
                 try {
                     NSignature signature = new NSignature(
                             methodDeclareContext.member_name().getText(),
@@ -218,20 +234,18 @@ public class Nterpreter {
 
         	
             try {
-                NField produced = null;
-
-                produced = processVar(argument.argument_var_declare().optional_var_declare());
+                NSignature produced = processVarSig(argument.argument_var_declare().optional_var_declare());
 
                 if(argument.statement() != null) {
                     NType defaultType = getReturnType(argument.statement());
-                    if(produced.Signature.ReturnType.acceptsTypeAssign(defaultType)) {
-                        args.add(new NArg());
+                    if(produced.ReturnType.acceptsTypeAssign(defaultType)) {
+                        args.add(new NArg(produced, true));
                     } else {
-                        error(Nterpreter.FilePath, Nterpreter.LineNumber, produced.Signature.Name + " can't have a default value of type " + defaultType.typepath());
+                        error(Nterpreter.FilePath, Nterpreter.LineNumber, produced.Name + " can't have a default value of type " + defaultType.typepath());
                         failure = true;
                     }
                 } else {
-                    args.add(new NArg(produced.Signature.ReturnType, false));
+                    args.add(new NArg(produced, false));
                 }
             } catch (NTypeNotFoundException e) {
                 error(Nterpreter.FilePath, Nterpreter.LineNumber, "Could not find type " + e.FailedType);
@@ -252,7 +266,7 @@ public class Nterpreter {
         return args.toArray(new NArg[args.size()]);
     }
 
-    public static NField processVar(NFinityParse.Optional_var_declareContext context) throws NTypeNotFoundException, NMemberDeclareException {
+    public static NSignature processVarSig(NFinityParse.Optional_var_declareContext context) throws NTypeNotFoundException, NMemberDeclareException {
         NAccess access = NAccess.Default;
         if(context.access_modifier() != null) {
             access = NAccess.valueOf(context.access_modifier().getText());
@@ -269,9 +283,7 @@ public class Nterpreter {
         	throw new NMemberDeclareException(fieldName, "Untyped variables are forbidden by preferences");
         }
 
-        NSignature signature = new NSignature(fieldName, fieldType, access);
-
-        return new NField(CurrentProject.ContextDiver.currentContext(), signature);
+        return new NSignature(fieldName, fieldType, access);
     }
     
     public static NType getReturnType(NFinityParse.StatementContext statement) throws BadNTypeException {
@@ -283,7 +295,7 @@ public class Nterpreter {
             NType ifType = getReturnType(trinary.statement(0));
             NType elseType = getReturnType(trinary.statement(1));
 
-            NType shared = NType.getHighestShared(ifType, elseType);
+            NType shared = CurrentProject.Assembly.getDeepestShared(ifType, elseType);
 
             if(shared == CurrentProject.Assembly.Any) {
                 if (CurrentProject.Preferences.DisableAny) {
@@ -396,8 +408,10 @@ public class Nterpreter {
 
     public static NType getReturnType(NFinityParse.Unary_statementContext unary_statement) throws BadNTypeException {
         if(unary_statement.UNARY_POST() != null) {
-
+            //TODO: unary operator processing
+            return getReturnType(unary_statement.single_statement());
         } else if(unary_statement.UNARY_PRE() != null) {
+            return getReturnType(unary_statement.single_statement());
         } else {
             return getReturnType(unary_statement.single_statement());
         }
@@ -436,6 +450,14 @@ public class Nterpreter {
         if(inner_statement != null) {
             return getReturnType(inner_statement);
         }
+
+        NFinityParse.Access_pathContext access_path = single_statement.access_path();
+
+        if(access_path != null) {
+            return resolveAccessType(access_path);
+        }
+
+        throw new BadNTypeException("Could not resolve type for single-statement " + single_statement.getText());
     }
 
     public static NType getReturnType(NFinityParse.Bare_valueContext bare_value) throws BadNTypeException {
@@ -511,8 +533,15 @@ public class Nterpreter {
                 sigRequest = new NSigRequest(method_call.member_name().getText(), args.toArray(new NArgRequest[args.size()]));
             }
 
-            currentType = pathDiver.currentContext().resolveMember(sigRequest).Signature.ReturnType;
-            pathDiver.diveInto(currentType.TypeContext);
+            try {
+                currentType = pathDiver.currentContext().resolveMember(sigRequest).Signature.ReturnType;
+                pathDiver.diveInto(currentType.TypeContext);
+            }
+            catch (NSigCannotResolveException e) {
+                error(FilePath, LineNumber, e.Message());
+
+                throw new BadNTypeException("Could not resolve type for bad signature");
+            }
         }
 
         return currentType;

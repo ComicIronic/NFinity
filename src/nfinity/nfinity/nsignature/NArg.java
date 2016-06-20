@@ -10,17 +10,26 @@ import nfinity.nfinity.ntype.NType;
  * Created by Comic on 21/05/2016.
  */
 public class NArg {
-    NField ArgField;
+    NSignature Signature;
 
     public boolean Optional;
 
-    public NArg(NContext ownerContext, String name, NType type, boolean optional) {
-        ArgField = (NField)ownerContext.addMember(new NSignature(name, type, NAccess.Member));
+    public NArg(String name, NType type, boolean optional) {
+        Signature = new NSignature(name, type, NAccess.Member);
+        Optional = optional;
+    }
+
+    public NArg(NSignature signature, boolean optional) {
+        Signature = signature;
         Optional = optional;
     }
 
     public boolean acceptsRequest(NArgRequest argRequest) {
-        return ArgField.Signature.ReturnType.acceptsTypeAssign(argRequest.Type) &&
-                (ArgField.Signature.Name == argRequest.Name || argRequest.Name == "");
+        return Signature.ReturnType.acceptsTypeAssign(argRequest.Type) &&
+                (Signature.Name == argRequest.Name || argRequest.Name == "");
+    }
+
+    public NField getArgField(NContext context) {
+        return new NField(context, Signature);
     }
 }

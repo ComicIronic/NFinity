@@ -22,11 +22,11 @@ public class TypeContext extends NContext {
     }
 
     public List<NMethod> Methods() {
-        return ListUtils.paired_union(Assembly.WorldContext.Methods(), Type.getMethods());
+        return Type.getMethods();
     }
 
     public List<NField> Fields() {
-        return ListUtils.paired_union(Assembly.WorldContext.Fields(), Type.getFields());
+        return Type.getFields();
     }
 
     public boolean canAccess(NMember member) {
@@ -59,6 +59,6 @@ public class TypeContext extends NContext {
     }
 
     public NType createType(String typepath) throws NTypeCannotExtendException {
-        return Assembly.getChildTypeOrCreateInPath(Type, typepath);
+        return Type.getOrCreateChildType(typepath);
     }
 }

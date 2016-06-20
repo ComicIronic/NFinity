@@ -6,6 +6,7 @@ import nfinity.nfinity.ncontext.NContext;
 import nfinity.nfinity.nmember.NField;
 import nfinity.nfinity.nmember.NMember;
 import nfinity.nfinity.nmember.NMethod;
+import nfinity.nfinity.nsignature.NArg;
 import nfinity.nfinity.ntype.NType;
 import nfinity.nfinity.util.ListUtils;
 
@@ -67,7 +68,11 @@ public class MethodContext extends NContext {
     }
 
     public List<NField> MemberFields() {
-        return Fields;
+        List<NField> argFields = new ArrayList<NField>();
+        for(NArg arg : MethodOwner.Signature.Args) {
+            argFields.add(arg.getArgField(this));
+        }
+        return ListUtils.paired_union(Fields, argFields);
     }
 
     public List<NMethod> Methods() {
