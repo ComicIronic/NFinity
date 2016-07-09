@@ -29,9 +29,7 @@ import java.util.List;
  * Created by Comic on 21/05/2016.
  */
 public class Nterpreter {
-    public static List<String> Warnings = new ArrayList<String>();
-
-    public static List<String> Errors = new ArrayList<String>();
+    private static List<String> _messages = new ArrayList<String>();
 
     public static NProject CurrentProject = null;
 
@@ -45,18 +43,12 @@ public class Nterpreter {
      * @throws FileNotFoundException
      */
     public static NProject openProject(Path filePath) throws FileNotFoundException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath.toString())));
-
         CurrentProject = new NProject();
 
         processFile(filePath);
 
-        for(String error : getErrors()) {
-        	System.out.println(error);
-        }
-        
-        for(String warning : getWarnings()) {
-        	System.out.println(warning);
+        for(String message : getMessages()) {
+        	System.out.println(message);
         }
 
         return CurrentProject;
@@ -555,7 +547,7 @@ public class Nterpreter {
      * @param message
      */
     public static void warn(Path filepath, int linecount, String message) {
-        Warnings.add(String.format("WARNING: File {0}: Line {1}, {2}", filepath.toString(), linecount, message));
+        _messages.add(String.format("WARNING: File {0}: Line {1}, {2}", filepath.toString(), linecount, message));
     }
 
     /**
@@ -565,19 +557,13 @@ public class Nterpreter {
      * @param message
      */
     public static void error(Path filepath, int linecount, String message) {
-        Warnings.add(String.format("ERROR: File {0}: Line {1}, {2}", filepath.toString(), linecount, message));
+        _messages.add(String.format("ERROR: File {0}: Line {1}, {2}", filepath.toString(), linecount, message));
     }
     
     
-    public static List<String> getWarnings() {
-    	List<String> warningCopy = ListUtils.copy(Warnings);
-    	Warnings.clear();
-    	return warningCopy;
-    }
-    
-    public static List<String> getErrors() {
-    	List<String> errorCopy = ListUtils.copy(Errors);
-    	Errors.clear();
-    	return errorCopy;
+    public static Iterable<String> getMessages() {
+        List<String> messageCopy = ListUtils.copy(_messages);
+        _messages.clear();
+        return messageCopy;
     }
 }
