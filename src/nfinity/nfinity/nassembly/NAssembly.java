@@ -48,6 +48,8 @@ public class NAssembly {
 
     public NType Mob;
 
+    public AssemblySettings Settings = new AssemblySettings();
+
     public List<NType> Types = new ArrayList<NType>();
 
     public NContext WorldContext;
@@ -93,7 +95,7 @@ public class NAssembly {
     	
         Types.addAll(Arrays.asList(Datum, Num, String, Bool, Typepath, NList, Atom, Movable, Area, Turf, Obj, Mob));
     }
-    
+
     public NType getDeepestShared(NType first, NType second) {
         List<NType> firstParentage = first.parentage();
 
