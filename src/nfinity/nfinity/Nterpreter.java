@@ -272,7 +272,7 @@ public class Nterpreter {
             fieldType = CurrentProject.Assembly.getTypeInPath(context.typepath().getText());
         }
         
-        if(CurrentProject.Preferences.DisableAny && fieldType == CurrentProject.Assembly.Any) {
+        if(CurrentProject.Assembly.Settings.DisableAny && fieldType == CurrentProject.Assembly.Any) {
         	throw new NMemberDeclareException(fieldName, "Untyped variables are forbidden by preferences");
         }
 
@@ -291,7 +291,7 @@ public class Nterpreter {
             NType shared = CurrentProject.Assembly.getDeepestShared(ifType, elseType);
 
             if(shared == CurrentProject.Assembly.Any) {
-                if (CurrentProject.Preferences.DisableAny) {
+                if (CurrentProject.Assembly.Settings.DisableAny) {
                     throw new BadNTypeException("Untyped variables are forbidden by preferences");
                 }
             }
@@ -303,7 +303,7 @@ public class Nterpreter {
 
     public static NType getReturnType(NFinityParse.Or_statementContext or_statement) throws BadNTypeException {
         if(or_statement.and_statement().size() > 1) {
-            if(CurrentProject.Preferences.RequireBoolean) {
+            if(CurrentProject.Assembly.Settings.RequireBoolean) {
                 for(NFinityParse.And_statementContext and_statement : or_statement.and_statement()) {
                     if(getReturnType(and_statement) != CurrentProject.Assembly.Bool) {
                         throw new BadNTypeException("All conditional statements must be boolean");
@@ -320,7 +320,7 @@ public class Nterpreter {
 
     public static NType getReturnType(NFinityParse.And_statementContext and_statement) throws BadNTypeException {
         if(and_statement.compare_statement().size() > 1) {
-            if(CurrentProject.Preferences.RequireBoolean) {
+            if(CurrentProject.Assembly.Settings.RequireBoolean) {
                 for(NFinityParse.Compare_statementContext compare_statement : and_statement.compare_statement()) {
                     if(getReturnType(compare_statement) != CurrentProject.Assembly.Bool) {
                         throw new BadNTypeException("All conditional statements must be boolean");
@@ -337,7 +337,7 @@ public class Nterpreter {
 
     public static NType getReturnType(NFinityParse.Compare_statementContext compare_statement) throws BadNTypeException {
         if(compare_statement.low_statement().size() > 1) {
-            if (CurrentProject.Preferences.RequireBoolean) {
+            if (CurrentProject.Assembly.Settings.RequireBoolean) {
                 for (NFinityParse.Low_statementContext low_statement : compare_statement.low_statement()) {
                     if (getReturnType(low_statement) != CurrentProject.Assembly.Bool) {
                         throw new BadNTypeException("All conditional statements must be boolean");
@@ -353,7 +353,7 @@ public class Nterpreter {
 
     public static NType getReturnType(NFinityParse.Low_statementContext low_statement) throws BadNTypeException {
         if(low_statement.med_statement().size() > 1) {
-            if (CurrentProject.Preferences.RequireBoolean) {
+            if (CurrentProject.Assembly.Settings.RequireBoolean) {
                 for (NFinityParse.Med_statementContext med_statement : low_statement.med_statement()) {
                     if (getReturnType(med_statement) != CurrentProject.Assembly.Bool) {
                         throw new BadNTypeException("All conditional statements must be boolean");
@@ -369,7 +369,7 @@ public class Nterpreter {
 
     public static NType getReturnType(NFinityParse.Med_statementContext med_statement) throws BadNTypeException {
         if(med_statement.high_statement().size() > 1) {
-            if (CurrentProject.Preferences.RequireBoolean) {
+            if (CurrentProject.Assembly.Settings.RequireBoolean) {
                 for (NFinityParse.High_statementContext high_statement : med_statement.high_statement()) {
                     if (getReturnType(high_statement) != CurrentProject.Assembly.Bool) {
                         throw new BadNTypeException("All conditional statements must be boolean");
@@ -385,7 +385,7 @@ public class Nterpreter {
 
     public static NType getReturnType(NFinityParse.High_statementContext high_statement) throws BadNTypeException {
         if(high_statement.unary_statement().size() > 1) {
-            if (CurrentProject.Preferences.RequireBoolean) {
+            if (CurrentProject.Assembly.Settings.RequireBoolean) {
                 for (NFinityParse.Unary_statementContext unary_statement : high_statement.unary_statement()) {
                     if (getReturnType(unary_statement) != CurrentProject.Assembly.Bool) {
                         throw new BadNTypeException("All conditional statements must be boolean");
