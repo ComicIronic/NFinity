@@ -39,7 +39,7 @@ expression
     : statement
     | IF '(' statement ')' expression_body (ELSE expression_body)?
     | FOR '(' assignment ';' statement ';' statement ')' expression_body
-    | FOR '(' var_declare IN statement ')' expression_body
+    | FOR '(' var_declare IN statement (TO statement (STEP statement)?)? ')' expression_body
     | WHILE '(' statement ')' expression_body
     | SWITCH '(' statement ')' switch_body
     | SPAWN '(' statement ')' expression_body

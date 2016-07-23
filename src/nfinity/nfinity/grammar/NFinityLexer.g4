@@ -160,6 +160,7 @@ ELSEIF:    'elseif';
 ELSE:      'else';
 SWITCH:    'switch';
 TO:        'to';
+STEP:      'step';
 AS:        'as';
 SET:       'set';
 SRC:       'src';
