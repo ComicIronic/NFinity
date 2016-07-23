@@ -10,16 +10,15 @@ import nfinity.nfinity.ntype.NType;
  * @since 22/05/2016 2016
  */
 public class GenericInstance extends NType {
-    public NType ImplementedType;
+    private NType _implementedType;
 
-    public GenericInstance() {
-        ParentType = NType.Null;
-        ImplementedType = NType.Null;
+    public NType getImplementedType() {
+        return _implementedType;
     }
 
     public GenericInstance(NType parent, NType implemented, NAssembly assembly) {
         super(parent, assembly);
-        ImplementedType = implemented;
+        _implementedType = implemented;
     }
 
     public boolean acceptsTypeAssign(NType other) {
@@ -27,7 +26,7 @@ public class GenericInstance extends NType {
             GenericInstance otherInstance = (GenericInstance) other;
 
             return otherInstance.ParentType == ParentType &&
-                    otherInstance.ImplementedType == ImplementedType;
+                    otherInstance.getImplementedType() == getImplementedType();
         } else {
             return false;
         }
