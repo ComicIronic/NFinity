@@ -2,9 +2,8 @@ package nfinity.nfinity.nproject;
 
 import nfinity.nfinity.Nterpreter;
 import nfinity.nfinity.nassembly.NAssembly;
-import nfinity.nfinity.ncontext.NContext;
 import nfinity.nfinity.ncontext.NContextDiver;
-import nfinity.nfinity.preferences.Preferences;
+import nfinity.nfinity.nassembly.AssemblySettings;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,8 +26,6 @@ public class NProject {
     public NAssembly Assembly;
 
     public NContextDiver ContextDiver = null;
-
-    public Preferences Preferences = new Preferences();
 
     public void addInclude(String pathstring) {
         Path foundPath = Paths.get(Defines.get("FILE_DIR"), pathstring.substring(1, pathstring.length() - 2));

@@ -1,4 +1,6 @@
-package nfinity.nfinity.preferences;
+package nfinity.nfinity.nassembly;
+
+import nfinity.nfinity.ncontext.NAccess;
 
 /**
  * Insert description here
@@ -6,10 +8,12 @@ package nfinity.nfinity.preferences;
  * @author Comic
  * @since 29/05/2016 2016
  */
-public class Preferences {
+public class AssemblySettings {
     public boolean EnforceNullable = false;
 
     public boolean DisableAny = false;
 
     public boolean RequireBoolean = false;
+
+    public NAccess DefaultAccess = NAccess.Public;
 }
