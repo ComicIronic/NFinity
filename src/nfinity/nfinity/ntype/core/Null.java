@@ -1,6 +1,8 @@
 package nfinity.nfinity.ntype.core;
 
+import nfinity.nfinity.exceptions.NOperationNotSupportedException;
 import nfinity.nfinity.nassembly.NAssembly;
+import nfinity.nfinity.ntype.NOperation;
 import nfinity.nfinity.ntype.NType;
 
 /**
@@ -11,5 +13,14 @@ public class Null extends NType {
 
     private Null(NType parentType, NAssembly assembly) {
     	super(parentType, assembly);
+    }
+
+    @Override
+    public NType unaryOperatorProduct(NOperation operation) throws NOperationNotSupportedException
+    {
+        if(operation == NOperation.Not) {
+            return Assembly.Any;
+        }
+        return super.unaryOperatorProduct(operation);
     }
 }
