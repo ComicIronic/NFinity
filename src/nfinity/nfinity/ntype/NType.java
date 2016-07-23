@@ -9,6 +9,7 @@ import nfinity.nfinity.ncontext.NContext;
 import nfinity.nfinity.ncontext.contexts.TypeContext;
 import nfinity.nfinity.nmember.NField;
 import nfinity.nfinity.nmember.NMethod;
+import nfinity.nfinity.ntype.core.Null;
 import nfinity.nfinity.util.ListUtils;
 
 import java.util.ArrayList;
@@ -19,8 +20,6 @@ import java.util.Stack;
  * Created by Comic on 21/05/2016.
  */
 public class NType {
-	public static NType Null = new Null(null, null);
-	
     public NType ParentType;
 
     public String TypeName;
@@ -108,7 +107,7 @@ public class NType {
     public boolean isChildOf(NType possibleParent) {
         NType castType = this;
 
-        while(castType != NType.Null) {
+        while(castType != Null.Null) {
             if(castType == possibleParent) {
                 return true;
             }
@@ -219,7 +218,7 @@ public class NType {
         List<NType> parentType = new ArrayList<NType>();
         NType parent = this;
 
-        while(parent != NType.Null) {
+        while(parent != Null.Null) {
             parentType.add(parent);
             parent = parent.ParentType;
         }

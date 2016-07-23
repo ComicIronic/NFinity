@@ -2,6 +2,7 @@ package nfinity.nfinity.ntype.generic.nullable;
 
 import nfinity.nfinity.nassembly.NAssembly;
 import nfinity.nfinity.ntype.NType;
+import nfinity.nfinity.ntype.core.Null;
 import nfinity.nfinity.ntype.generic.GenericInstance;
 
 /**
@@ -12,7 +13,7 @@ import nfinity.nfinity.ntype.generic.GenericInstance;
  */
 public class NullableInstance extends GenericInstance {
     public boolean acceptsTypeAssign(NType other) {
-        return other == NType.Null || super.acceptsTypeAssign(other);
+        return other == Null.Null || super.acceptsTypeAssign(other);
     }
 
     public NullableInstance(NType parent, NType implemented, NAssembly assembly) {

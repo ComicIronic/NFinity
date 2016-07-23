@@ -5,6 +5,7 @@ import nfinity.nfinity.ncontext.NAccess;
 import nfinity.nfinity.nmember.NField;
 import nfinity.nfinity.nsignature.NSignature;
 import nfinity.nfinity.ntype.NType;
+import nfinity.nfinity.ntype.core.Null;
 import nfinity.nfinity.ntype.generic.GenericBase;
 import nfinity.nfinity.ntype.generic.GenericType;
 
@@ -17,7 +18,7 @@ public class Nullable extends GenericBase {
     }
 
     public Nullable() {
-        ParentType = NType.Null;
+        ParentType = Null.Null;
         GenericType = new GenericType();
     }
 

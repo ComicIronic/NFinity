@@ -2,6 +2,7 @@ package nfinity.nfinity.ntype.generic.list;
 
 import nfinity.nfinity.nassembly.NAssembly;
 import nfinity.nfinity.ntype.NType;
+import nfinity.nfinity.ntype.core.Null;
 import nfinity.nfinity.ntype.generic.GenericBase;
 
 /**
@@ -9,7 +10,7 @@ import nfinity.nfinity.ntype.generic.GenericBase;
  */
 public class NList extends GenericBase {
     {
-        ParentType = NType.Null;
+        ParentType = Null.Null;
     }
 
     public NList(NType parentType, NAssembly assembly) {

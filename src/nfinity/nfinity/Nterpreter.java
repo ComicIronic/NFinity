@@ -13,6 +13,7 @@ import nfinity.nfinity.nsignature.NSignature;
 import nfinity.nfinity.nsignature.request.NArgRequest;
 import nfinity.nfinity.nsignature.request.NSigRequest;
 import nfinity.nfinity.ntype.NType;
+import nfinity.nfinity.ntype.core.Null;
 import nfinity.nfinity.util.ListUtils;
 import org.antlr.v4.runtime.ANTLRFileStream;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -454,7 +455,7 @@ public class Nterpreter {
 
     public static NType getReturnType(NFinityParse.Bare_valueContext bare_value) throws BadNTypeException {
         if(bare_value.NULL() != null) {
-            return NType.Null;
+            return Null.Null;
         }
 
         if(bare_value.STRING() != null) {

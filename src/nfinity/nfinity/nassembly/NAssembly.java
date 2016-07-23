@@ -63,7 +63,7 @@ public class NAssembly {
     	
     	WorldContext = new WorldContext(this);
     	
-    	Null = NType.Null;
+    	Null = nfinity.nfinity.ntype.core.Null.Null;
     	
     	World = new World(Null, this);
     	
