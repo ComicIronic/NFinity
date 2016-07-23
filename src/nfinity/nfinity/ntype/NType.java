@@ -1,5 +1,6 @@
 package nfinity.nfinity.ntype;
 
+import nfinity.nfinity.exceptions.NOperationNotSupportedException;
 import nfinity.nfinity.exceptions.NTypeCannotExtendException;
 import nfinity.nfinity.exceptions.NTypeNotFoundException;
 import nfinity.nfinity.ntype.core.Null;
@@ -76,6 +77,32 @@ public class NType {
 
     public boolean acceptsTypeAssign(NType other) {
         return other.isChildOf(this);
+    }
+
+    /**
+     * Gives the type product of the operation of the two given types
+     * @param other
+     * @param operation
+     * @return
+     * @throws NOperationNotSupportedException
+     */
+    public NType binaryOperatorProduct(NType other, NOperation operation) throws NOperationNotSupportedException
+    {
+        if(ParentType != null) {
+            return ParentType.binaryOperatorProduct(other, operation);
+        }
+        throw new NOperationNotSupportedException("Object types do not support primitive operations.");
+    }
+
+    public NType unaryOperatorProduct(NOperation operation) throws NOperationNotSupportedException
+    {
+        if(operation == NOperation.Not) {
+            if(Assembly.Settings.EnforceNullable) {
+                throw new NOperationNotSupportedException("The negative operation is undefined for object types.");
+            } else {
+                return this;
+            }
+        }
     }
 
     public boolean isChildOf(NType possibleParent) {
