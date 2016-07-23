@@ -10,7 +10,7 @@ import nfinity.nfinity.ntype.NType;
  * @since 22/05/2016 2016
  */
 public class GenericInstance extends NType {
-    private NType _implementedType;
+    protected NType _implementedType;
 
     public NType getImplementedType() {
         return _implementedType;
@@ -21,6 +21,7 @@ public class GenericInstance extends NType {
         _implementedType = implemented;
     }
 
+    @Override
     public boolean acceptsTypeAssign(NType other) {
         if(other instanceof GenericInstance) {
             GenericInstance otherInstance = (GenericInstance) other;

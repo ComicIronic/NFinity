@@ -37,7 +37,7 @@ public class GenericBase extends NType {
         NType implemented = Assembly.getTypeInPath(typepath);
 
         for(GenericInstance instance : Instances) {
-            if(instance.ImplementedType == implemented) {
+            if(instance.getImplementedType() == implemented) {
                 return instance;
             }
         }
