@@ -93,6 +93,12 @@ public class NType {
         throw new NOperationNotSupportedException("Object types do not support primitive operations.");
     }
 
+    /**
+     * Gives the type product of the unary operation on this type
+     * @param operation
+     * @return
+     * @throws NOperationNotSupportedException
+     */
     public NType unaryOperatorProduct(NOperation operation) throws NOperationNotSupportedException
     {
         if(operation == NOperation.Not) {
@@ -102,6 +108,7 @@ public class NType {
                 return this;
             }
         }
+        throw new NOperationNotSupportedException("Object types do not support primitive operations.");
     }
 
     public boolean isChildOf(NType possibleParent) {
