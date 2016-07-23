@@ -7,6 +7,7 @@ import nfinity.nfinity.nsignature.NSignature;
 import nfinity.nfinity.ntype.NType;
 import nfinity.nfinity.ntype.core.Null;
 import nfinity.nfinity.ntype.generic.GenericBase;
+import nfinity.nfinity.ntype.generic.GenericInstance;
 import nfinity.nfinity.ntype.generic.GenericType;
 
 /**
@@ -14,7 +15,7 @@ import nfinity.nfinity.ntype.generic.GenericType;
  */
 public class Nullable extends GenericBase {
     {
-        Fields.add(new NField(this, new NSignature("Value", GenericType, NAccess.Public)));
+        Fields.add(new NField(TypeContext, new NSignature("Value", GenericType, NAccess.Public)));
     }
 
     public Nullable() {
@@ -22,7 +23,8 @@ public class Nullable extends GenericBase {
         GenericType = new GenericType();
     }
 
-    public NType genericInstance(NType specificType) {
+    @Override
+    protected GenericInstance genericInstance(NType specificType) {
         return new NullableInstance(ParentType, specificType, Assembly);
     }
 }
